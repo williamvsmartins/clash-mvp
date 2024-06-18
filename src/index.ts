@@ -1,11 +1,26 @@
 import 'dotenv/config'
-import { Client, Events, GatewayIntentBits } from 'discord.js'
+import config from '../config';
+import { Client, GatewayIntentBits, Partials } from 'discord.js';
+import { registerCommands } from './commands';
+import { setupFixedMessage } from './fixedMessage';
+import { setupClashRoyaleForm } from './clashRoyaleForm';
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const { discordToken } = config;
 
-client.once(Events.ClientReady, readyClient => {
-	console.log(`Ready! Logged in as ${readyClient.user.tag}`);
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+  ],
+  partials: [Partials.Channel],
 });
 
+client.once('ready', async () => {
+  console.log(`Bot está online como ${client.user!.tag}`);
+  await registerCommands(client);
+  setupFixedMessage(client);
+  setupClashRoyaleForm(client);
+});
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(discordToken);
