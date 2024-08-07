@@ -11,6 +11,10 @@ export const registerCommands = async (client: Client): Promise<void> => {
       name: 'sendfixmessage',
       description: 'Envia a mensagem fixa com o botão para adicionar tag do Clash Royale',
     },
+    {
+      name: 'pix',
+      description: 'Envia a mensagem fixa com o botão para gerar Pix'
+    }
   ];
 
   const rest = new REST({ version: '9' }).setToken(discordToken!);

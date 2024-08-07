@@ -4,6 +4,8 @@ import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import { registerCommands } from './commands';
 import { setupFixedMessage } from './fixedMessage';
 import { setupClashRoyaleForm } from './clashRoyaleForm';
+import { setupFixedMessagePix } from './fixed-message-pix';
+import { setupPixGenerate } from './pix-generate';
 
 const { discordToken } = config;
 
@@ -21,6 +23,8 @@ client.once('ready', async () => {
   await registerCommands(client);
   setupFixedMessage(client);
   setupClashRoyaleForm(client);
+	setupFixedMessagePix(client);
+	setupPixGenerate(client);
 });
 
 client.login(discordToken);
