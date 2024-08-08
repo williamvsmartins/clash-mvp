@@ -6,6 +6,8 @@ import { setupFixedMessage } from './fixedMessage';
 import { setupClashRoyaleForm } from './clashRoyaleForm';
 import { setupFixedMessagePix } from './fixed-message-pix';
 import { setupPixGenerate } from './pix-generate';
+import { setupFixedMessageQueue } from './fixed-message-queue';
+import { setupQueueManager } from './queueManager';
 
 const { discordToken } = config;
 
@@ -22,9 +24,12 @@ client.once('ready', async () => {
   console.log(`Bot está online como ${client.user!.tag}`);
   await registerCommands(client);
   setupFixedMessage(client);
+  setupFixedMessagePix(client);
+  setupFixedMessageQueue(client)
+
   setupClashRoyaleForm(client);
-	setupFixedMessagePix(client);
 	setupPixGenerate(client);
+  setupQueueManager(client)
 });
 
 client.login(discordToken);

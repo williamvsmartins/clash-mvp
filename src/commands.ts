@@ -14,6 +14,10 @@ export const registerCommands = async (client: Client): Promise<void> => {
     {
       name: 'pix',
       description: 'Envia a mensagem fixa com o botão para gerar Pix'
+    },
+    {
+      name: 'fila',
+      description: 'Envia a mensagem fixa com o botão para entrar na fila'
     }
   ];
 
