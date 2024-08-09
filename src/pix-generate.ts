@@ -6,6 +6,7 @@ import { v4 } from 'uuid'
 import qr from 'qr-image';
 import { writeFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
+import { paymentChack } from './confirm-pix';
 
 
 const { mercado_pago_token } = config;
@@ -41,7 +42,6 @@ export const setupPixGenerate = (client: Client): void => {
         }
       );
       const qrCodeUrl = paymentResponse.data.point_of_interaction.transaction_data.qr_code;
-      console.log(paymentResponse.data)
 
       // Gere a imagem do QR Code
       const qrImage = qr.imageSync(qrCodeUrl, { type: 'png' });
@@ -50,9 +50,13 @@ export const setupPixGenerate = (client: Client): void => {
 
       // Envie a imagem como um anexo no Discord
       await interaction.reply({ files: [filePath], ephemeral: true });
+      await interaction.followUp({ content : qrCodeUrl, ephemeral: true })
 
       // Remova o arquivo temporário após o envio
       unlinkSync(filePath);
+
+      paymentChack(idempotencyKey, interaction)
+
     } catch (error) {
       console.error('Erro ao gerar o QR Code:', error);
       await interaction.reply({ content: 'Houve um erro ao gerar o QR Code. Tente novamente mais tarde.', ephemeral: true });
