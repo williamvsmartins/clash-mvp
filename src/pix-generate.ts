@@ -41,6 +41,8 @@ export const setupPixGenerate = (client: Client): void => {
           }
         }
       );
+
+      const paymentId = paymentResponse.data.id;
       const qrCodeUrl = paymentResponse.data.point_of_interaction.transaction_data.qr_code;
 
       // Gere a imagem do QR Code
@@ -55,7 +57,7 @@ export const setupPixGenerate = (client: Client): void => {
       // Remova o arquivo temporário após o envio
       unlinkSync(filePath);
 
-      paymentChack(idempotencyKey, interaction)
+      paymentChack(paymentId, interaction)
 
     } catch (error) {
       console.error('Erro ao gerar o QR Code:', error);
