@@ -1,5 +1,7 @@
-import { ChannelType, Client, Guild } from 'discord.js';
+import { ChannelType, Client, Guild, TextChannel } from 'discord.js';
 import { updateQueueEmbed } from './updateQueueEmbed';
+
+import { setupPixGenerate } from './pix-generate';
 
 export const setupQueueManager = (client: Client): void => {
   client.on('interactionCreate', async interaction => {
@@ -29,7 +31,11 @@ export const setupQueueManager = (client: Client): void => {
         const [user1, user2] = queue;
         await createChannelForUsers(client, interaction.guild!, messageId,apostaId, user1, user2);
       }
-      interaction.deferUpdate()
+      try {
+        await interaction.deferUpdate();
+      } catch (error) {
+        console.error('Erro ao tentar deferUpdate:', error);
+      }
     } else if (interaction.customId === 'leave_queue') {
       messageId = interaction.message.id;
       queue = filas.get(apostaId) || [];
@@ -62,7 +68,7 @@ const addToQueue = (apostaId: string, userId: string): string[] => {
     return fila;
 };
 
-const createChannelForUsers = async (client:Client, guild: Guild, messageId: string, apostaId: string, user1: string, user2: string) => {
+const createChannelForUsers = async (client: Client, guild: Guild, messageId: string, apostaId: string, user1: string, user2: string) => {
   const channel = await guild.channels.create({
     name: `aposta-${user1}-${user2}`,
     type: ChannelType.GuildText,
@@ -82,11 +88,16 @@ const createChannelForUsers = async (client:Client, guild: Guild, messageId: str
     ],
   });
 
-  await channel.send(`Bem-vindos, <@${user1}> e <@${user2}>! Este é o seu canal privado.`);
+  if (channel instanceof TextChannel) {
+    await channel.send(`Bem-vindos, <@${user1}> e <@${user2}>! Este é o seu canal privado.`);
+    await setupPixGenerate(client, channel, user1);
+    await setupPixGenerate(client ,channel, user2);
+  } else {
+    console.error("Erro: O canal criado não é um TextChannel.");
+  }
 
   removeFromQueue(apostaId, user1);
   removeFromQueue(apostaId, user2);
-
   await updateQueueEmbed(messageId, apostaId, client);
 };
 

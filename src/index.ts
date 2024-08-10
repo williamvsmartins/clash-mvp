@@ -28,7 +28,6 @@ client.once('ready', async () => {
   setupFixedMessageQueue(client)
 
   setupClashRoyaleForm(client);
-	setupPixGenerate(client);
   setupQueueManager(client)
 });
 
