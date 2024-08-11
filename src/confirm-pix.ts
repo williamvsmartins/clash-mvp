@@ -25,26 +25,25 @@ export const confirmPay = async (id: string) => {
     }
 };
 
-export const paymentChack = (id : string, channel: TextChannel, checkInterval: number = 5000, maxChecks: number = 60) => {
-    console.log("Payment chack")
-    let checkCount = 0;
-    const checkIntervalId = setInterval(async () => {
-        if (checkCount >= maxChecks) {
-            clearInterval(checkIntervalId);
-            console.log("Tempo de espera expirado");
-            await channel.send({ content: 'O pagamento não foi confirmado a tempo.' });
-        } else {
-            const status = await confirmPay(id);
-            
-            if (status === "approved") {
-                clearInterval(checkIntervalId);
-                await channel.send({ content: `Pagamento ${id} aprovado com sucesso!` });
-            } else if (status === "error") {
-                clearInterval(checkIntervalId);
-                await channel.send({ content: 'Houve um erro ao verificar o pagamento.' });
-            }
-            
-            checkCount++;
+export const paymentChack = async (id : string, channel: TextChannel, checkInterval: number = 5000, 
+    maxChecks: number = 60):Promise<Boolean> => {
+        let checkCount = 0;
+
+        while (checkCount < maxChecks) {
+          const status = await confirmPay(id);
+      
+          if (status === "approved") {
+            await channel.send({ content: `Pagamento ${id} aprovado com sucesso!` });
+            return true;
+          } else if (status === "error") {
+            await channel.send({ content: 'Houve um erro ao verificar o pagamento.' });
+            return false;
+          }
+      
+          checkCount++;
+          await new Promise(resolve => setTimeout(resolve, checkInterval)); // Espera pelo intervalo definido antes de checar novamente
         }
-    }, checkInterval);
+      
+        await channel.send({ content: 'O pagamento não foi confirmado a tempo.' });
+        return false;
 }

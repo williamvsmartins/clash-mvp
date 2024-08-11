@@ -2,6 +2,7 @@ import { ChannelType, Client, Guild, TextChannel } from 'discord.js';
 import { updateQueueEmbed } from './updateQueueEmbed';
 
 import { setupPixGenerate } from './pix-generate';
+import { getClashTag } from './getClashTag';
 
 export const setupQueueManager = (client: Client): void => {
   client.on('interactionCreate', async interaction => {
@@ -87,18 +88,27 @@ const createChannelForUsers = async (client: Client, guild: Guild, messageId: st
       },
     ],
   });
-
-  if (channel instanceof TextChannel) {
-    await channel.send(`Bem-vindos, <@${user1}> e <@${user2}>! Este é o seu canal privado.`);
-    await setupPixGenerate(client, channel, user1);
-    await setupPixGenerate(client ,channel, user2);
-  } else {
-    console.error("Erro: O canal criado não é um TextChannel.");
-  }
-
+  
   removeFromQueue(apostaId, user1);
   removeFromQueue(apostaId, user2);
   await updateQueueEmbed(messageId, apostaId, client);
+
+  
+  await channel.send(`Bem-vindos, <@${user1}> e <@${user2}>! Este é o seu canal privado.`);
+  
+  const [confirm1, confirm2] = await Promise.all([
+    setupPixGenerate(client, channel, user1),
+    setupPixGenerate(client, channel, user2)
+  ]);
+  
+
+  if(confirm1 && confirm2){
+    await channel.send('Ambos os pagamentos foram confirmados')
+    console.log(user1)
+    const clashTag1 = await getClashTag(user1);
+    await channel.send(`tag do jogador 1 é ${clashTag1}`)
+  }
+
 };
 
 const removeFromQueue = (apostaId: string, userId: string): string[] => {
