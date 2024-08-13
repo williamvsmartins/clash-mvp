@@ -13,7 +13,7 @@ const { mercado_pago_token } = config;
 
 
 export const setupPixGenerate = async (client: Client, channel: TextChannel,
-   userId : string):Promise<Boolean> => {
+   userId : string):Promise<string> => {
   const amount = 0.01; // Valor da transação em centavos (R$ 10,00)
   const idempotencyKey = v4(); // Gera um UUID único para a requisição
   try {
@@ -62,12 +62,13 @@ export const setupPixGenerate = async (client: Client, channel: TextChannel,
       unlinkSync(filePath);
     }
 
-      return paymentChack(paymentId, channel)
+      channel.send(`PaymentId original: ${paymentId}`)
+      return paymentId;
 
     } catch (error) {
       console.error('Erro ao gerar o QR Code:', error);
       await channel.send({ content: 'Houve um erro ao gerar o QR Code. Tente novamente mais tarde.' });
-      return false;
+      return '';
     }
   
   };

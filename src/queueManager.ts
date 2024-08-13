@@ -3,6 +3,9 @@ import { updateQueueEmbed } from './updateQueueEmbed';
 
 import { setupPixGenerate } from './pix-generate';
 import { getClashTag } from './getClashTag';
+import { reembolsoPix } from './reembolso';
+import { paymentChack } from './confirm-pix';
+import { embedConf } from './embed-Confirm-Cancel';
 
 export const setupQueueManager = (client: Client): void => {
   client.on('interactionCreate', async interaction => {
@@ -96,19 +99,31 @@ const createChannelForUsers = async (client: Client, guild: Guild, messageId: st
   
   await channel.send(`Bem-vindos, <@${user1}> e <@${user2}>! Este é o seu canal privado.`);
   
-  const [confirm1, confirm2] = await Promise.all([
+  const [idTransition1, idTRansition2] = await Promise.all([
     setupPixGenerate(client, channel, user1),
     setupPixGenerate(client, channel, user2)
   ]);
-  
 
-  if(confirm1 && confirm2){
-    await channel.send('Ambos os pagamentos foram confirmados')
-    console.log(user1)
-    const clashTag1 = await getClashTag(user1);
-    await channel.send(`tag do jogador 1 é ${clashTag1}`)
+  channel.send(`id transacao posSetup pix: ${idTransition1}`)
+
+  if(idTransition1 != '' && idTRansition2 != ''){
+
+    const [confirm1] = await Promise.all([
+      paymentChack(idTransition1, channel),
+      // paymentChack(idTRansition2, channel)
+    ])
+
+    if(confirm1){
+      await channel.send('Ambos os pagamentos foram confirmados')
+      console.log(user1)
+      const clashTag1 = await getClashTag(user1);
+      const link = `https://link.clashroyale.com/invite/player/${clashTag1}`;
+      await channel.send(`${link}`)
+      // await reembolsoPix(idTransition1, channel);
+      await channel.send(embedConf())
+    }
+
   }
-
 };
 
 const removeFromQueue = (apostaId: string, userId: string): string[] => {
