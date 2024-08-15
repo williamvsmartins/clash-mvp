@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import config from '../config';
 
 const { mongodbUri } = config;
-mongoose.connect(mongodbUri!);
+mongoose.connect(mongodbUri!)
 
 const guildSchema = new mongoose.Schema({
   guildId: String,
@@ -12,6 +12,7 @@ const guildSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
   userId: String,
   clashTag: String,
+  pix: String,
 });
 
 export const Guild = mongoose.model('Guild', guildSchema);

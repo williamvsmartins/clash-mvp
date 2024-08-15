@@ -8,6 +8,7 @@ import { setupFixedMessagePix } from './fixed-message-pix';
 import { setupPixGenerate } from './pix-generate';
 import { setupFixedMessageQueue } from './fixed-message-queue';
 import { setupQueueManager } from './queueManager';
+import { handleButtonsCon } from './buttonsConfirmCancel';
 
 const { discordToken } = config;
 
@@ -28,8 +29,9 @@ client.once('ready', async () => {
   setupFixedMessageQueue(client)
 
   setupClashRoyaleForm(client);
-	setupPixGenerate(client);
   setupQueueManager(client)
+
+  handleButtonsCon(client)
 });
 
 client.login(discordToken);

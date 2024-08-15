@@ -1,4 +1,4 @@
-import { ChannelType, Client, Guild } from 'discord.js';
+import { ChannelType, Client, Guild, TextChannel } from 'discord.js';
 import { updateQueueEmbed } from './updateQueueEmbed';
 
 import { setupPixGenerate } from './pix-generate';
@@ -7,6 +7,7 @@ import { reembolsoPix } from './reembolso';
 import { paymentChack } from './confirm-pix';
 import { embedConf } from './embed-Confirm-Cancel';
 import { handleButtonsCon } from './buttonsConfirmCancel';
+
 
 export const setupQueueManager = (client: Client): void => {
   client.on('interactionCreate', async interaction => {
@@ -36,7 +37,11 @@ export const setupQueueManager = (client: Client): void => {
         const [user1, user2] = queue;
         await createChannelForUsers(client, interaction.guild!, messageId,apostaId, user1, user2);
       }
-      interaction.deferUpdate()
+      try {
+        await interaction.deferUpdate();
+      } catch (error) {
+        console.error('Erro ao tentar deferUpdate:', error);
+      }
     } else if (interaction.customId === 'leave_queue') {
       messageId = interaction.message.id;
       queue = filas.get(apostaId) || [];
@@ -69,7 +74,7 @@ const addToQueue = (apostaId: string, userId: string): string[] => {
     return fila;
 };
 
-const createChannelForUsers = async (client:Client, guild: Guild, messageId: string, apostaId: string, user1: string, user2: string) => {
+const createChannelForUsers = async (client: Client, guild: Guild, messageId: string, apostaId: string, user1: string, user2: string) => {
   const channel = await guild.channels.create({
     name: `aposta-${user1}-${user2}`,
     type: ChannelType.GuildText,
@@ -88,12 +93,9 @@ const createChannelForUsers = async (client:Client, guild: Guild, messageId: str
       },
     ],
   });
-
-  await channel.send(`Bem-vindos, <@${user1}> e <@${user2}>! Este é o seu canal privado.`);
-
+  
   removeFromQueue(apostaId, user1);
   removeFromQueue(apostaId, user2);
-
   await updateQueueEmbed(messageId, apostaId, client);
 
   
