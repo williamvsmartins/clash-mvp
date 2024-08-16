@@ -7,7 +7,8 @@ import config from '../config'
 const { clashRoyaleApiToken } = config;
 
 
-export const validMatch = async (user1: string, user2: string, channel: TextChannel, dateChannel: Date) => {
+export const validMatch = async (user1: string, user2: string,
+     channel: TextChannel, dateChannel: Date): Promise<Boolean> => {
     try{
 
         const clashTagUser1 = await getClashTag(user1);
@@ -31,13 +32,9 @@ export const validMatch = async (user1: string, user2: string, channel: TextChan
                 const localDate = battleDate.toLocaleString();
                 const dateChannelLocal = dateChannel.toLocaleString();
 
-                console.log(responseUser1.data[0])
-
-                if(localDate >= dateChannelLocal){
+                // if(localDate >= dateChannelLocal){
                     const crownsUser = responseUser1.data[0].team[0].crowns;
-                    console.log(crownsUser)
                     const crownsOponnent = responseUser1.data[0].opponent[0].crowns;
-                    console.log(crownsOponnent)
 
                     if(crownsUser > crownsOponnent){
                         channel.send(`Parabéns pela vitória <@${user1}>`)
@@ -52,19 +49,22 @@ export const validMatch = async (user1: string, user2: string, channel: TextChan
                         // await reembolsoPix(idTransition1, channel);
                         // await reembolsoPix(idTransition1, channel);
                     }
+                    return true;
 
-                } else{
-                    channel.send(`Insconsistência na data da partida!!`)
-                }
+                // } else{
+                //     channel.send(`Insconsistência na data da partida!!`)
+                // }
             } else{
                 channel.send('tags imcompatíveis')
             }
         } else{
             channel.send(`erro ao verificar`)
         }
+        return false;
 
     } catch(error){
-        channel.send(`error: ${error}`)
+        console.log(error)
+        return false;
     }
 
 }

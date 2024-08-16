@@ -1,5 +1,4 @@
-import { Client, GatewayIntentBits,EmbedBuilder,
-     ActionRowBuilder, ButtonBuilder, ButtonStyle,Interaction } from 'discord.js'
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,Interaction } from 'discord.js'
 
 export const embedConf = () => {
     const embed = new EmbedBuilder()

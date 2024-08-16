@@ -1,10 +1,5 @@
 import { ChannelType, Client, Guild, TextChannel } from 'discord.js';
 import { updateQueueEmbed } from './updateQueueEmbed';
-
-import { setupPixGenerate } from './pix-generate';
-import { getClashTag } from './getClashTag';
-import { reembolsoPix } from './reembolso';
-import { paymentChack } from './confirm-pix';
 import { embedConf } from './embed-Confirm-Cancel';
 import { handleButtonsCon } from './buttonsConfirmCancel';
 
@@ -101,30 +96,30 @@ const createChannelForUsers = async (client: Client, guild: Guild, messageId: st
   
   await channel.send(`Bem-vindos, <@${user1}> e <@${user2}>! Este é o seu canal privado.`);
   
-  const [idTransition1, idTRansition2] = await Promise.all([
-    setupPixGenerate(client, channel, user1),
-    setupPixGenerate(client, channel, user2)
-  ]);
+  // const [idTransition1, idTRansition2] = await Promise.all([
+  //   setupPixGenerate(client, channel, user1),
+  //   setupPixGenerate(client, channel, user2)
+  // ]);
 
   const dateChannel = new Date(); //confere o horário após o pagamento, serve para verificar quando realmente comeca a considerar a partida
 
 
-  if(idTransition1 != '' && idTRansition2 != ''){
+  // if(idTransition1 != '' && idTRansition2 != ''){
 
-    const [confirm1, confirm2] = await Promise.all([
-      paymentChack(idTransition1, channel),
-      paymentChack(idTRansition2, channel)
-    ])
+    // const [confirm1, confirm2] = await Promise.all([
+    //   paymentChack(idTransition1, channel),
+    //   paymentChack(idTRansition2, channel)
+    // ])
 
-    if(confirm1 && confirm2){
+    // if(confirm1 && confirm2){
       await channel.send('Ambos os pagamentos foram confirmados')
 
       await channel.send(embedConf())
 
       handleButtonsCon(client, user1, user2, channel, dateChannel);
-    }
+    // }
 
-  }
+  // }
 };
 
 const removeFromQueue = (apostaId: string, userId: string): string[] => {

@@ -1,5 +1,6 @@
 const config = {
   channelId: process.env.CHANNEL_ID || '',
+  channelIdQueue: process.env.CHANNEL_ID_QUEUE || '',
   guildId: process.env.GUILD_ID || '',
   discordToken: process.env.DISCORD_TOKEN,
   clashRoyaleApiToken: process.env.API_TOKEN,
