@@ -5,7 +5,7 @@ import { registerCommands } from './commands';
 import { setupFixedMessage } from './staff/fixedMessage';
 import { setupClashRoyaleForm } from './clashRoyaleForm';
 import { setupFixedMessagePix } from './fixed-message-pix';
-import { setupFixedMessageQueue } from './fixed-message-queue';
+import { setupFixedMessageQueue } from './staff/fixed-message-queue';
 import { setupQueueManager } from './queueManager';
 
 const { discordToken } = config;

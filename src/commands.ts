@@ -25,7 +25,21 @@ export const registerCommands = async (client: Client): Promise<void> => {
     },
     {
       name: 'fila',
-      description: 'Envia a mensagem fixa com o botão para entrar na fila'
+      description: 'Cria nova fila de apostas',
+      options: [
+        {
+          name: 'valor',
+          description: 'Valor em reais para a fila',
+          type: 4, // 4 representa um número inteiro
+          required: true
+        },
+        {
+          name: 'canal',
+          description: 'O ID do canal onde a mensagem será enviada',
+          type: 7, // 7 representa um canal no Discord (CHANNEL)
+          required: true
+        }
+      ]
     }
   ];
 
