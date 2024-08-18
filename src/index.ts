@@ -2,7 +2,7 @@ import 'dotenv/config'
 import config from '../config';
 import { Client, GatewayIntentBits, Partials } from 'discord.js';
 import { registerCommands } from './commands';
-import { setupFixedMessage } from './fixedMessage';
+import { setupFixedMessage } from './staff/fixedMessage';
 import { setupClashRoyaleForm } from './clashRoyaleForm';
 import { setupFixedMessagePix } from './fixed-message-pix';
 import { setupFixedMessageQueue } from './fixed-message-queue';

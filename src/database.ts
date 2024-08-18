@@ -5,12 +5,12 @@ const { mongodbUri } = config;
 mongoose.connect(mongodbUri!)
 
 const guildSchema = new mongoose.Schema({
-  guildId: String,
+  guildId: { type: String, required: true, unique: true },
   fixedMessageId: String,
 });
 
 const userSchema = new mongoose.Schema({
-  userId: String,
+  userId: { type: String, required: true, unique: true },
   clashTag: String,
   pix: String,
 });

@@ -1,15 +1,24 @@
 import { TextChannel, Client, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import config from '../config';
-import { Guild } from './database';
-import * as fs from 'fs';
-
-const { channelId } = config;
+import config from '../../config';
+import { Guild } from '../database';
 
 export const setupFixedMessage = async (client: Client): Promise<void> => {
   client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand() || interaction.commandName !== 'sendfixmessage') return;
+    if (!interaction.isCommand() || interaction.commandName !== 'registro') return;
 
-    const channel = await client.channels.fetch(channelId);
+    const { options } = interaction
+
+    const guild = options.get('canal')
+
+    if (!guild){
+      interaction.editReply({
+          content: "É necessário especificar o ID do canal!"
+      });
+      return;
+    }
+
+    const guildId = guild.value as string
+    const channel = await client.channels.fetch(guildId);
     if (!channel || !(channel instanceof TextChannel)) return;
 
     const row = new ActionRowBuilder<ButtonBuilder>()
@@ -22,10 +31,8 @@ export const setupFixedMessage = async (client: Client): Promise<void> => {
 
     const sentMessage = await channel.send({ content: 'Clique no botão abaixo para adicionar sua tag do Clash Royale:', components: [row] });
     const fixedMessageId = sentMessage.id;
-    fs.writeFileSync('./src/config.ts', `const config = ${JSON.stringify(config, null, 2)};\nexport default config;`);
 
-    // Salvar o ID da mensagem fixa no banco de dados
-    await saveFixedMessageId(config.guildId, fixedMessageId);
+    await saveFixedMessageId(guildId, fixedMessageId);
 
     await interaction.reply({ content: 'Mensagem fixa enviada com sucesso!', ephemeral: true });
   });

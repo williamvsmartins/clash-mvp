@@ -8,8 +8,16 @@ const { guildId, discordToken } = config;
 export const registerCommands = async (client: Client): Promise<void> => {
   const commands = [
     {
-      name: 'sendfixmessage',
+      name: 'registro',
       description: 'Envia a mensagem fixa com o botão para adicionar tag do Clash Royale',
+      options: [
+        {
+          name: 'canal',
+          description: 'O ID do canal onde a mensagem será fixada',
+          type: 7, // 7 representa um canal no Discord (CHANNEL)
+          required: true
+        }
+      ]
     },
     {
       name: 'pix',
