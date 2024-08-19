@@ -3,7 +3,7 @@ import { User } from './database';
 import axios from 'axios';
 import config from '../config';
 
-const { clashRoyaleApiToken } = config;
+const { clashRoyaleApiToken, registeredRoleId } = config;
 
 export const setupClashRoyaleForm = (client: Client): void => {
   client.on('interactionCreate', async interaction => {
@@ -52,7 +52,7 @@ export const setupClashRoyaleForm = (client: Client): void => {
       );
 
       await interaction.reply({content: `Tag do Clash Royale ${clashTag} e Pix foi validada e salva com sucesso!`, ephemeral: true });
-      const role = guild?.roles.cache.find(r => r.name === 'Cadastrado');
+      const role = guild?.roles.cache.find(r => r.id === registeredRoleId);
 
       if (role && guild!=null) {
         const member = guild.members.cache.get(userId);
