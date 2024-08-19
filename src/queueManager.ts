@@ -7,18 +7,18 @@ import { handleButtonsCon } from './buttonsConfirmCancel';
 export const setupQueueManager = (client: Client): void => {
   client.on('interactionCreate', async interaction => {
     if (!interaction.isButton()) return;
-
+    
     const userId = interaction.user.id;
-    const apostaId = '1';
 
     let queue: string[];
     let messageId: string;
-    
-    if (interaction.customId === 'enter_queue') {
-      messageId = interaction.message.id;
+    messageId = interaction.message.id;
+    const apostaId = messageId;
+    const channelId = interaction.message.channelId
 
+    if (interaction.customId === 'enter_queue') {
       queue = filas.get(apostaId) || [];
-      
+
       if (queue.includes(userId)) {
         await interaction.reply({ content: 'Você já está na fila!', ephemeral: true });
         return;
@@ -26,11 +26,11 @@ export const setupQueueManager = (client: Client): void => {
       
       queue = addToQueue(apostaId, userId);
       
-      await updateQueueEmbed(messageId, apostaId, client);
+      await updateQueueEmbed(channelId, messageId, apostaId, client);
 
       if (queue.length >= 2) {
         const [user1, user2] = queue;
-        await createChannelForUsers(client, interaction.guild!, messageId,apostaId, user1, user2);
+        await createChannelForUsers(client, interaction.guild!, channelId, messageId, apostaId, user1, user2);
       }
       try {
         await interaction.deferUpdate();
@@ -43,12 +43,13 @@ export const setupQueueManager = (client: Client): void => {
 
       if (!queue.includes(userId)) {
         await interaction.reply({ content: 'Você não está na fila!', ephemeral: true });
+        interaction.deferUpdate()
         return;
       }
 
       queue = removeFromQueue(apostaId, userId);
 
-      await updateQueueEmbed(messageId, apostaId, client);
+      await updateQueueEmbed(channelId, messageId, apostaId, client);
       interaction.deferUpdate()
     }
   });
@@ -69,7 +70,7 @@ const addToQueue = (apostaId: string, userId: string): string[] => {
     return fila;
 };
 
-const createChannelForUsers = async (client: Client, guild: Guild, messageId: string, apostaId: string, user1: string, user2: string) => {
+const createChannelForUsers = async (client: Client, guild: Guild, channelId: string, messageId: string, apostaId: string, user1: string, user2: string) => {
   const channel = await guild.channels.create({
     name: `aposta-${user1}-${user2}`,
     type: ChannelType.GuildText,
@@ -91,7 +92,7 @@ const createChannelForUsers = async (client: Client, guild: Guild, messageId: st
   
   removeFromQueue(apostaId, user1);
   removeFromQueue(apostaId, user2);
-  await updateQueueEmbed(messageId, apostaId, client);
+  await updateQueueEmbed(channelId, messageId, apostaId, client);
 
   
   await channel.send(`Bem-vindos, <@${user1}> e <@${user2}>! Este é o seu canal privado.`);
