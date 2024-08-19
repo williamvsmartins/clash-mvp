@@ -2,6 +2,7 @@ import { ChannelType, Client, Guild, TextChannel } from 'discord.js';
 import { updateQueueEmbed } from './updateQueueEmbed';
 import { embedConf } from './embed-Confirm-Cancel';
 import { handleButtonsCon } from './buttonsConfirmCancel';
+import { getMoney } from './getMoneys';
 
 
 export const setupQueueManager = (client: Client): void => {
@@ -17,7 +18,9 @@ export const setupQueueManager = (client: Client): void => {
     const channelId = interaction.message.channelId
 
     //aqui
-    const price = interaction.message.embeds[0].data.fields![0]
+    const priceString = interaction.message.embeds[0].data.fields![0].value;
+    const cleanedPriceString = priceString.replace(/[^\d,.-]/g, '').replace(',', '.'); 
+    const price = parseFloat(cleanedPriceString);
 
 
     if (interaction.customId === 'enter_queue') {
@@ -27,19 +30,25 @@ export const setupQueueManager = (client: Client): void => {
         await interaction.reply({ content: 'Você já está na fila!', ephemeral: true });
         return;
       }
-      
-      queue = addToQueue(apostaId, userId);
-      
-      await updateQueueEmbed(channelId, messageId, apostaId, client);
 
-      if (queue.length >= 2) {
-        const [user1, user2] = queue;
-        await createChannelForUsers(client, interaction.guild!, channelId, messageId, apostaId, user1, user2);
-      }
-      try {
-        await interaction.deferUpdate();
-      } catch (error) {
-        console.error('Erro ao tentar deferUpdate:', error);
+      const saldo = await getMoney(userId);
+
+      if(price < saldo){
+        queue = addToQueue(apostaId, userId);
+        
+        await updateQueueEmbed(channelId, messageId, apostaId, client);
+
+        if (queue.length >= 2) {
+          const [user1, user2] = queue;
+          await createChannelForUsers(client, interaction.guild!, channelId, messageId, apostaId, user1, user2);
+        }
+        try {
+          await interaction.deferUpdate();
+        } catch (error) {
+          console.error('Erro ao tentar deferUpdate:', error);
+        }
+      } else{
+        await interaction.reply({ content: `saldo insuficiente para esta aposta, seu saldo atual é de: ${saldo}`, ephemeral: true })
       }
     } else if (interaction.customId === 'leave_queue') {
       messageId = interaction.message.id;

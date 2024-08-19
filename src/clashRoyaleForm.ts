@@ -47,7 +47,7 @@ export const setupClashRoyaleForm = (client: Client): void => {
 
       await User.updateOne(
         { userId },
-        { clashTag, pix },
+        { clashTag, pix, moedas: 0.0 },
         { upsert: true },
       );
 
