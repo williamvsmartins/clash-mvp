@@ -9,7 +9,6 @@ export const setupFixedMessageQueue = async (client: Client): Promise<void> => {
 
     const channelOption  = options.get('canal')
     const valueOption  = options.get('valor')
-    console.log(valueOption)
 
     if (!channelOption) {
       await interaction.reply({
@@ -41,9 +40,10 @@ export const setupFixedMessageQueue = async (client: Client): Promise<void> => {
     const embed = new EmbedBuilder()
         .setColor('#0099ff')
         .setTitle('1v1 Clássico | Fila de Competição')
-        .setDescription(`Formato\n1v1 Clássico\n\nValor\n${currencyFormatter.format(value)}`)
+        .setDescription(`Formato\n1v1 Clássico\n\n`)
         .addFields([
-          { name: 'Jogadores', value: 'Nenhum jogador na fila \n\n', inline: false }
+          { name: 'Valor', value: currencyFormatter.format(value)},
+          { name: 'Jogadores', value: 'Nenhum jogador na fila \n\n', inline: false },
         ])
         .setThumbnail('https://i.ytimg.com/vi/uWsQ5IWVilM/maxresdefault.jpg')
         .setFooter({ text: 'Clash Apostas' });

@@ -16,6 +16,10 @@ export const setupQueueManager = (client: Client): void => {
     const apostaId = messageId;
     const channelId = interaction.message.channelId
 
+    //aqui
+    const price = interaction.message.embeds[0].data.fields![0]
+
+
     if (interaction.customId === 'enter_queue') {
       queue = filas.get(apostaId) || [];
 
