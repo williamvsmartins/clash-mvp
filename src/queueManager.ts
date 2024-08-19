@@ -3,6 +3,8 @@ import { updateQueueEmbed } from './updateQueueEmbed';
 import { embedConf } from './embed-Confirm-Cancel';
 import { handleButtonsCon } from './buttonsConfirmCancel';
 import { getMoney } from './getMoneys';
+import { embedConfPlay } from './embed-Confirm-PLay';
+import { handleButtonsConfet } from './buttonsConfirmBet';
 
 
 export const setupQueueManager = (client: Client): void => {
@@ -17,19 +19,18 @@ export const setupQueueManager = (client: Client): void => {
     const apostaId = messageId;
     const channelId = interaction.message.channelId
 
-    //aqui
-    const priceString = interaction.message.embeds[0].data.fields![0].value;
-    const cleanedPriceString = priceString.replace(/[^\d,.-]/g, '').replace(',', '.'); 
-    const price = parseFloat(cleanedPriceString);
-
-
     if (interaction.customId === 'enter_queue') {
       queue = filas.get(apostaId) || [];
-
+      
       if (queue.includes(userId)) {
         await interaction.reply({ content: 'Você já está na fila!', ephemeral: true });
         return;
       }
+      //aqui
+      const priceString = interaction.message.embeds[0].data.fields![0].value; // pegando indefinido?
+      console.log(priceString)
+      const cleanedPriceString = priceString.replace(/[^\d,.-]/g, '').replace(',', '.'); 
+      const price = parseFloat(cleanedPriceString);
 
       const saldo = await getMoney(userId);
 
@@ -40,7 +41,7 @@ export const setupQueueManager = (client: Client): void => {
 
         if (queue.length >= 2) {
           const [user1, user2] = queue;
-          await createChannelForUsers(client, interaction.guild!, channelId, messageId, apostaId, user1, user2);
+          await createChannelForUsers(client, interaction.guild!, channelId, messageId, apostaId, user1, user2, price);
         }
         try {
           await interaction.deferUpdate();
@@ -83,7 +84,8 @@ const addToQueue = (apostaId: string, userId: string): string[] => {
     return fila;
 };
 
-const createChannelForUsers = async (client: Client, guild: Guild, channelId: string, messageId: string, apostaId: string, user1: string, user2: string) => {
+const createChannelForUsers = async (client: Client, guild: Guild, channelId: string,
+   messageId: string, apostaId: string, user1: string, user2: string, price: number) => {
   const channel = await guild.channels.create({
     name: `aposta-${user1}-${user2}`,
     type: ChannelType.GuildText,
@@ -109,31 +111,13 @@ const createChannelForUsers = async (client: Client, guild: Guild, channelId: st
 
   
   await channel.send(`Bem-vindos, <@${user1}> e <@${user2}>! Este é o seu canal privado.`);
-  
-  // const [idTransition1, idTRansition2] = await Promise.all([
-  //   setupPixGenerate(client, channel, user1),
-  //   setupPixGenerate(client, channel, user2)
-  // ]);
 
-  const dateChannel = new Date(); //confere o horário após o pagamento, serve para verificar quando realmente comeca a considerar a partida
+   //confere o horário após o pagamento, serve para verificar quando realmente comeca a considerar a partida
 
+  const message = await channel.send(embedConfPlay(price))
 
-  // if(idTransition1 != '' && idTRansition2 != ''){
-
-    // const [confirm1, confirm2] = await Promise.all([
-    //   paymentChack(idTransition1, channel),
-    //   paymentChack(idTRansition2, channel)
-    // ])
-
-    // if(confirm1 && confirm2){
-      await channel.send('Ambos os pagamentos foram confirmados')
-
-      await channel.send(embedConf())
-
-      handleButtonsCon(client, user1, user2, channel, dateChannel);
-    // }
-
-  // }
+  handleButtonsConfet(client, user1, user2, channel, message);
+    
 };
 
 const removeFromQueue = (apostaId: string, userId: string): string[] => {

@@ -6,7 +6,9 @@ const config = {
   discordToken: process.env.DISCORD_TOKEN,
   clashRoyaleApiToken: process.env.API_TOKEN,
   mongodbUri: process.env.MONGO_URI,
-  mercado_pago_token: process.env.MERCADO_PAGO_TOKEN
+  mercado_pago_token: process.env.MERCADO_PAGO_TOKEN,
+  notion_api_key: process.env.NOTION_API_KEY || '',
+  database_id: process.env.DATABASE_ID || '',
 };
 
 export default config;

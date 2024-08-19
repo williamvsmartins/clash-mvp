@@ -7,6 +7,8 @@ import { setupClashRoyaleForm } from './clashRoyaleForm';
 import { setupFixedMessagePix } from './fixed-message-pix';
 import { setupFixedMessageQueue } from './staff/fixed-message-queue';
 import { setupQueueManager } from './queueManager';
+import { setupFixedMessageWalle } from './staff/fixed-message-wallet';
+import { buttonsWallet } from './buttons-wallet';
 
 const { discordToken } = config;
 
@@ -24,10 +26,12 @@ client.once('ready', async () => {
   await registerCommands(client);
   setupFixedMessage(client);
   setupFixedMessagePix(client);
+  setupFixedMessageWalle(client);
   setupFixedMessageQueue(client)
 
   setupClashRoyaleForm(client);
   setupQueueManager(client)
+  buttonsWallet(client);
 
 });
 

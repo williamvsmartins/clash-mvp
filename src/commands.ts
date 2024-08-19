@@ -40,6 +40,18 @@ export const registerCommands = async (client: Client): Promise<void> => {
           required: true
         }
       ]
+    },
+    {
+      name: 'carteira',
+      description: 'Fixa os dados da carteira',
+      options: [
+        {
+          name: 'canal',
+          description: 'O ID do canal onde a mensagem será fixada',
+          type: 7, // 7 representa um canal no Discord (CHANNEL)
+          required: true
+        }
+      ]
     }
   ];
 

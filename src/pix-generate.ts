@@ -1,5 +1,4 @@
-import { Client, ModalBuilder, TextInputBuilder, ActionRowBuilder, TextInputStyle, TextChannel } from 'discord.js';
-import { User } from './database';
+import { Client, Interaction  } from 'discord.js';
 import axios from 'axios';
 import config from '../config';
 import { v4 } from 'uuid'
@@ -12,11 +11,11 @@ import { paymentChack } from './confirm-pix';
 const { mercado_pago_token } = config;
 
 
-export const setupPixGenerate = async (client: Client, channel: TextChannel,
-   userId : string):Promise<string> => {
-  const amount = 0.01; // Valor da transação em centavos (R$ 10,00)
+export const setupPixGenerate = async (client: Client, interaction: Interaction, amount: number): Promise<string> => {
   const idempotencyKey = v4(); // Gera um UUID único para a requisição
   try {
+    
+    console.log('gerando')
     const paymentResponse = await axios.post(
         'https://api.mercadopago.com/v1/payments',
         {
@@ -40,35 +39,36 @@ export const setupPixGenerate = async (client: Client, channel: TextChannel,
         }
       );
 
-      const paymentId = paymentResponse.data.id;
-      const qrCodeUrl = paymentResponse.data.point_of_interaction.transaction_data.qr_code;
+    const paymentId = paymentResponse.data.id;
+    const qrCodeUrl = paymentResponse.data.point_of_interaction.transaction_data.qr_code;
 
-      // Gere a imagem do QR Code
-      const qrImage = qr.imageSync(qrCodeUrl, { type: 'png' });
-      const filePath = join(__dirname, `temp-qr-code-${userId}.png`);
-      writeFileSync(filePath, qrImage);
+    // Gere a imagem do QR Code
+    const qrImage = qr.imageSync(qrCodeUrl, { type: 'png' });
+    const filePath = join(__dirname, `temp-qr-code-${idempotencyKey}.png`);
+    writeFileSync(filePath, qrImage);
 
-      // Envie a mensagem direta com o QR Code
+    const userId = interaction.user.id;
+
     const user = await client.users.fetch(userId);
     if (user) {
       const dmChannel = await user.createDM();
       await dmChannel.send({
-        content: `Olá <@${userId}>, faça o pagamento com o Pix usando o QR Code abaixo:`,
+        content: `Olá <@${userId}>, faça o pagamento com o Pix usando o QR Code ou o copia e cola abaixo:`,
         files: [filePath]
       });
       await dmChannel.send({ content: qrCodeUrl });
 
-      // Remova o arquivo temporário após o envio
       unlinkSync(filePath);
-    }
 
-      channel.send(`PaymentId original: ${paymentId}`)
+      await interaction.reply({ content: 'O pix foi enviado em sua dm, por favor verifique', ephemeral: true });
+
       return paymentId;
-
-    } catch (error) {
-      console.error('Erro ao gerar o QR Code:', error);
-      await channel.send({ content: 'Houve um erro ao gerar o QR Code. Tente novamente mais tarde.' });
-      return '';
     }
-  
-  };
+    return '';
+  } catch (error) {
+    console.error('Erro ao gerar o QR Code:', error);
+    
+    await interaction.reply({ content: 'Erro ao gerar qrCode', ephemeral: true });
+    return '';
+  }
+};

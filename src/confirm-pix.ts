@@ -1,6 +1,6 @@
 import axios from 'axios';
 import config from '../config';
-import { TextChannel } from 'discord.js';
+import { Client, TextChannel } from 'discord.js';
 
 
 
@@ -25,25 +25,40 @@ export const confirmPay = async (id: string) => {
     }
 };
 
-export const paymentChack = async (id : string, channel: TextChannel, checkInterval: number = 5000, 
+export const paymentChack = async (client: Client, id : string, userId: string, checkInterval: number = 5000, 
     maxChecks: number = 60):Promise<Boolean> => {
         let checkCount = 0;
+        const user = await client.users.fetch(userId);
+        const dmChannel = await user.createDM();
 
         while (checkCount < maxChecks) {
           const status = await confirmPay(id);
       
           if (status === "approved") {
-            await channel.send({ content: `Pagamento ${id} aprovado com sucesso!` });
-            return true;
+            if (user) {
+                await dmChannel.send({
+                  content: `Olá <@${userId}>, seu pagamento já foi aprovado`,
+                });
+            
+                return true;
+            }
           } else if (status === "error") {
-            await channel.send({ content: 'Houve um erro ao verificar o pagamento.' });
-            return false;
+            if (user) {
+                await dmChannel.send({
+                  content: `Olá <@${userId}>, seu pagamento teve problema ao ser aprovado`,
+                });
+            
+                return false;
+            }
+            
           }
       
           checkCount++;
           await new Promise(resolve => setTimeout(resolve, checkInterval)); // Espera pelo intervalo definido antes de checar novamente
         }
       
-        await channel.send({ content: 'O pagamento não foi confirmado a tempo.' });
+        await dmChannel.send({
+            content: `Olá <@${userId}>, você não fez o pagamento a tempo`,
+          });
         return false;
 }
