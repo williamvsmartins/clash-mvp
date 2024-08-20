@@ -1,14 +1,13 @@
-import { ChannelType, Client, Guild, TextChannel } from 'discord.js';
-import { updateQueueEmbed } from './updateQueueEmbed';
-import { embedConf } from './embed-Confirm-Cancel';
-import { handleButtonsCon } from './buttonsConfirmCancel';
-import { getMoney } from './getMoneys';
-import { embedConfPlay } from './embed-Confirm-PLay';
-import { handleButtonsConfet } from './buttonsConfirmBet';
+import { ChannelType, Client, Guild, Interaction, TextChannel } from 'discord.js';
+import { updateQueueEmbed } from '../../updateQueueEmbed';
 
+import { getMoney } from '../../getMoneys';
+import { embedConfPlay } from '../../embed-Confirm-PLay';
+import { confirmacoes } from './buttonsConfirmBet';
 
-export const setupQueueManager = (client: Client): void => {
-  client.on('interactionCreate', async interaction => {
+//precisa da observacap
+export const setupQueueManager = async (client: Client, interaction: Interaction) => {
+
     if (!interaction.isButton()) return;
     
     const userId = interaction.user.id;
@@ -66,7 +65,6 @@ export const setupQueueManager = (client: Client): void => {
       await updateQueueEmbed(channelId, messageId, apostaId, client);
       interaction.deferUpdate()
     }
-  });
 };
 
 
@@ -86,8 +84,9 @@ const addToQueue = (apostaId: string, userId: string): string[] => {
 
 const createChannelForUsers = async (client: Client, guild: Guild, channelId: string,
    messageId: string, apostaId: string, user1: string, user2: string, price: number) => {
+    
   const channel = await guild.channels.create({
-    name: `aposta-${user1}-${user2}`,
+    name: `aposta-${user1}-${user2}-${apostaId}`,
     type: ChannelType.GuildText,
     permissionOverwrites: [
       {
@@ -109,15 +108,13 @@ const createChannelForUsers = async (client: Client, guild: Guild, channelId: st
   removeFromQueue(apostaId, user2);
   await updateQueueEmbed(channelId, messageId, apostaId, client);
 
+  confirmacoes.set(`${channel.id}`, []);
   
   await channel.send(`Bem-vindos, <@${user1}> e <@${user2}>! Este é o seu canal privado.`);
 
-   //confere o horário após o pagamento, serve para verificar quando realmente comeca a considerar a partida
-
   const message = await channel.send(embedConfPlay(price))
 
-  handleButtonsConfet(client, user1, user2, channel, message);
-    
+  // handleButtonsConfet(client, interaction, user1, user2, channel, message);
 };
 
 const removeFromQueue = (apostaId: string, userId: string): string[] => {

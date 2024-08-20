@@ -5,8 +5,6 @@ import { v4 } from 'uuid'
 import qr from 'qr-image';
 import { writeFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
-import { paymentChack } from './confirm-pix';
-
 
 const { mercado_pago_token } = config;
 
@@ -60,7 +58,7 @@ export const setupPixGenerate = async (client: Client, interaction: Interaction,
 
       unlinkSync(filePath);
 
-      await interaction.reply({ content: 'O pix foi enviado em sua dm, por favor verifique', ephemeral: true });
+      // await interaction.reply({ content: 'O pix foi enviado em sua dm, por favor verifique', ephemeral: true });
 
       return paymentId;
     }
@@ -68,7 +66,7 @@ export const setupPixGenerate = async (client: Client, interaction: Interaction,
   } catch (error) {
     console.error('Erro ao gerar o QR Code:', error);
     
-    await interaction.reply({ content: 'Erro ao gerar qrCode', ephemeral: true });
+    // await interaction.reply({ content: 'Erro ao gerar qrCode', ephemeral: true });
     return '';
   }
 };

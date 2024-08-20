@@ -1,5 +1,5 @@
 import { Client, EmbedBuilder, TextChannel } from 'discord.js';
-import { filas } from './queueManager';
+import { filas } from './handlers/buttons/queueManager';
 
 export const updateQueueEmbed = async (channelId: string, messageId: string, apostaId: string, client: Client): Promise<void> => {
   const channel = await client.channels.fetch(channelId);

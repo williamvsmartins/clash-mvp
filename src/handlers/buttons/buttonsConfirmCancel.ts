@@ -1,12 +1,10 @@
 import { Client, Interaction, TextChannel, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
-import { validMatch } from "./validateMatch";
-import { deleteChannel } from "./deleteChannel";
-import { confirmPay } from "./confirm-pix";
-import { reembolsoPix } from "./reembolso";
+import { validMatch } from "../../validateMatch";
+import { deleteChannel } from "../../deleteChannel";
 
-export const handleButtonsCon = async (client : Client, userId1: string, userId2: string,
+export const handleButtonsCon = async (client : Client, interaction: Interaction, userId1: string, userId2: string,
      channel: TextChannel, dateChannel: Date) => { //falta adicionar os ids das transacoes para reembolso em cancelar
-    client.on('interactionCreate', async (interaction: Interaction) => {
+    
         if(!interaction.isButton()) return;
 
         const rowDesable = new ActionRowBuilder<ButtonBuilder>()
@@ -50,19 +48,13 @@ export const handleButtonsCon = async (client : Client, userId1: string, userId2
         } else if (interaction.customId === 'Cancelar') {
             await interaction.update({ components: [rowDesable] });
 
-            // const confirmId1 = confirmPay(idTransition1);
-            // const confirmId2 = confirmPay(idTransition2);
-            // if(confirmId1 === "approved"){
-            //     reembolsoPix(idTransition1, channel);
-            // } 
-            // if(confirmId2 === "approved"){
-                // reembolsoPix(idTransition2, channel);
-            // } 
-
-
-            await channel.send(`Aposta canelada e pagamentos estornados com sucesso`);
-            deleteChannel(channel);
-            
+            const confirmMatch = await validMatch(userId1, userId2, channel, dateChannel);
+            if(!confirmMatch){
+                await channel.send(`Aposta canelada e pagamentos estornados com sucesso`);
+                deleteChannel(channel);
+            } else{
+                channel.send(`Você clicou em finalizar a partida, mas identificamos que essa partida ocorreu, portanto pagamento efetuado ao vencedor!!!`);
+                deleteChannel(channel);
+            }
         }
-    });
 }
