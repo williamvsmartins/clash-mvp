@@ -1,12 +1,13 @@
 import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,Interaction } from 'discord.js'
 
-export const embedConf = (link:string) => {
+export const embedConf = (link:string, value:number) => {
     const embed = new EmbedBuilder()
         .setColor('#2f3136') // Cor do card
         .setTitle('Partida iniciada') // Título do card
         .setDescription('Ao final da partida aperte o botao de finalizada') // Descrição com o formato e valor
         .setFields([
             { name: 'Link que convite', value: link },
+            { name: 'Valor da aposta', value: `${value}` },
             { name: 'Finalizar', value: 'Finaliza a partida e realiza o pagamento em moedas' },
             { name: 'Cancelar', value: 'Cancela a aposta se ainda não tiver ocorrido a partida' }
 

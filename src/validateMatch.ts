@@ -8,9 +8,9 @@ const { clashRoyaleApiToken } = config;
 
 
 export const validMatch = async (user1: string, user2: string,
-     channel: TextChannel, dateChannel: Date): Promise<Boolean> => {
+     channel: TextChannel, dateChannel: Date, price: number): Promise<Boolean> => {
     try{
-
+        console.log(price)
         const clashTagUser1 = await getClashTag(user1);
         const clashTagUser2 = await getClashTag(user2);
 

@@ -46,4 +46,5 @@ export const pendingConfirmations = new Map<string, {
     channel: TextChannel;
     message: Message;
     date: Date;
+    price: number;
   }>();

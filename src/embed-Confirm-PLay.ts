@@ -4,7 +4,12 @@ export const embedConfPlay = (price: number) => {
     const embed = new EmbedBuilder()
         .setColor('#2f3136') // Cor do card
         .setTitle('Aguardando Jogadores') // Título do card
-        .setDescription(`Valor da aposta: ${price} \n Vencedor recebe: ${(price-0.1)*2}`) // Descrição com o formato e valor
+        // .setDescription(`Valor da aposta: ${price} \n Vencedor recebe: ${(price-0.1)*2}`) // Descrição com o formato e valor
+        .setFields([
+            { name: 'Valor da aposta:', value: `${price}` },
+            { name: 'Vencedor recebe:', value: `${(price-0.1)*2}` }
+
+        ])
         .setThumbnail('https://i.ytimg.com/vi/uWsQ5IWVilM/maxresdefault.jpg')
         .setFooter({ text: 'BetClash' }); // Rodapé do card
     

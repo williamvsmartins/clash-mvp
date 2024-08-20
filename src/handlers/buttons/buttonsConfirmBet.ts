@@ -18,6 +18,10 @@ export const handleButtonsConfet = async (client : Client, interaction: Interact
             if(!mapConf?.includes(interaction.user.id)){
                 mapConf?.push(interaction.user.id)
             }
+            const priceString = interaction.message.embeds[0].data.fields![0].value; // pegando indefinido?
+            console.log(priceString)
+            const cleanedPriceString = priceString.replace(/[^\d,.-]/g, '').replace(',', '.'); 
+            const price = parseFloat(cleanedPriceString);
             if(confirmados < 2){
                 const row = new ActionRowBuilder<ButtonBuilder>()
                     .addComponents(
@@ -40,12 +44,14 @@ export const handleButtonsConfet = async (client : Client, interaction: Interact
                     user2: userId2,
                     channel: channel,
                     message: message,
-                    date: confirmationDate
+                    date: confirmationDate,
+                    price: price,
                 });
 
                 await channel.send(`Ambos jogadores confirmaram a aposta`)
                 await message.delete()
                 await channel.send(`Por favor, algum dos dois jogadores envie o convite de amizade para a sua partida escolhida`)
+                
             }
 
         } else if (interaction.customId === 'Cancel_inicio') {

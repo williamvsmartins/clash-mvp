@@ -36,7 +36,7 @@ client.once('ready', async () => {
     if (confirmation) {
       if (msg.author.id === confirmation.user1 || msg.author.id === confirmation.user2) {
         if (msg.content.includes('https://link.clashroyale.com/invite/friend/')) {
-          await confirmation.channel.send(embedConf(msg.content));
+          await confirmation.channel.send(embedConf(msg.content, confirmation.price));
           await confirmation.channel.setName(`Aposta confirmada - ${confirmation.channel.id}`);
         }
       }
