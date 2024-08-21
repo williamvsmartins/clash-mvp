@@ -18,7 +18,6 @@ export const buttonsWalletModal = async (client: Client, interaction: Interactio
         if (isNaN(valorNumerico) || valorNumerico < 1.10) {
             await interaction.reply({ content: 'Por favor, insira um valor numérico válido maior ou igual a 1.10.', ephemeral: true });
         } else {
-            console.log('pagamento')
             const paymentId = await setupPixGenerate(client, interaction, valorNumerico);
             if(await paymentChack(client, paymentId, interaction.user.id)){
                 deposito(interaction.user.id, valorNumerico);
@@ -27,8 +26,6 @@ export const buttonsWalletModal = async (client: Client, interaction: Interactio
     } else if(interaction.customId === 'saque_modal'){
         const valor = interaction.fields.getTextInputValue('saqueModal');
         const valorNumerico = parseFloat(valor);
-        console.log(valorNumerico);
-        console.log(saldo)
         if(valorNumerico <= saldo){
             await saque(interaction.user.id, valorNumerico);
             await interaction.reply({ content: `Saque sendo processado, em até 24h você terá seu saque concluído`, ephemeral: true })

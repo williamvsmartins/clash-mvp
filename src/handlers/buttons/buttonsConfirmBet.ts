@@ -1,6 +1,7 @@
 import { Client, Interaction, TextChannel, ActionRowBuilder, ButtonBuilder, ButtonStyle, Message } from "discord.js";
 import { deleteChannel } from "../../deleteChannel";
 import { pendingConfirmations } from "../handleButtonInteraction";
+import { descontoPartida } from "../../moneys";
 
 
 export const confirmacoes: Map<string, string[]> = new Map();
@@ -12,14 +13,12 @@ export const handleButtonsConfet = async (client : Client, interaction: Interact
         
         const mapConf = confirmacoes.get(channel.id);
         const confirmados = confirmacoes.get(channel.id)?.length;
-        console.log(confirmados)
 
         if(interaction.customId === 'Aceitar' && confirmados!= null){
             if(!mapConf?.includes(interaction.user.id)){
                 mapConf?.push(interaction.user.id)
             }
             const priceString = interaction.message.embeds[0].data.fields![0].value; // pegando indefinido?
-            console.log(priceString)
             const cleanedPriceString = priceString.replace(/[^\d,.-]/g, '').replace(',', '.'); 
             const price = parseFloat(cleanedPriceString);
             if(confirmados < 2){
@@ -47,6 +46,8 @@ export const handleButtonsConfet = async (client : Client, interaction: Interact
                     date: confirmationDate,
                     price: price,
                 });
+
+                descontoPartida(userId1, userId2, price);
 
                 await channel.send(`Ambos jogadores confirmaram a aposta`)
                 await message.delete()

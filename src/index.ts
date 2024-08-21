@@ -23,10 +23,8 @@ client.once('ready', async () => {
   
    client.on('interactionCreate', async (interaction: Interaction) => {
     if (interaction.isButton()) {
-      console.log('botao')
       await handleButtonInteraction(client, interaction);
     } else if (interaction.isModalSubmit()) {
-      console.log('modal')
       await handleFormSubmission(client, interaction);
     }
   });

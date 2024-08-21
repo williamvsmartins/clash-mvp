@@ -3,6 +3,7 @@ import { TextChannel } from "discord.js";
 import { getClashTag } from './getClashTag';
 
 import config from '../config'
+import { deposito } from "./moneys";
 
 const { clashRoyaleApiToken } = config;
 
@@ -10,7 +11,7 @@ const { clashRoyaleApiToken } = config;
 export const validMatch = async (user1: string, user2: string,
      channel: TextChannel, dateChannel: Date, price: number): Promise<Boolean> => {
     try{
-        console.log(price)
+        console.log(`validMatchPrice: ${price}`)
         const clashTagUser1 = await getClashTag(user1);
         const clashTagUser2 = await getClashTag(user2);
 
@@ -32,28 +33,30 @@ export const validMatch = async (user1: string, user2: string,
                 const localDate = battleDate.toLocaleString();
                 const dateChannelLocal = dateChannel.toLocaleString();
 
-                // if(localDate >= dateChannelLocal){
+                if(localDate >= dateChannelLocal){
                     const crownsUser = responseUser1.data[0].team[0].crowns;
                     const crownsOponnent = responseUser1.data[0].opponent[0].crowns;
 
                     if(crownsUser > crownsOponnent){
                         channel.send(`Parabéns pela vitória <@${user1}>`)
                         channel.send(`Realizando pagamento...`)
-                        // await paymentPix(0.01, 'alyssonpereira41@gmail.com')
+                        await deposito(user1, (price-0.1)*2)
+                        channel.send(`Pagamento realizado com sucesso`)
                     } else if(crownsUser < crownsOponnent){
                         channel.send(`Parabéns pela vitória <@${user2}>`)
                         channel.send(`Realizando pagamento...`)
-                        // await paymentPix(0.01, 'alyssonpereira41@gmail.com')
+                        await deposito(user2, (price-0.1)*2)
+                        channel.send(`Pagamento realizado com sucesso`)
                     } else{
                         channel.send(`Que empate frenético foi esse????? Estaremos reembolsando os seus valores!`)
-                        // await reembolsoPix(idTransition1, channel);
-                        // await reembolsoPix(idTransition1, channel);
+                        await deposito(user1, (price-0.1))
+                        await deposito(user2, (price-0.1))
                     }
                     return true;
 
-                // } else{
-                //     channel.send(`Insconsistência na data da partida!!`)
-                // }
+                } else{
+                    channel.send(`Insconsistência na data da partida!!`)
+                }
             } else{
                 channel.send('tags imcompatíveis')
             }

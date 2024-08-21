@@ -36,7 +36,6 @@ export const paymentPix = async (valor: number, pix: string): Promise<void> => {
             }
         );
 
-        console.log('Transferência realizada com sucesso:', response.data);
     } catch(error){
         if (axios.isAxiosError(error)) {
             console.error('Erro ao realizar transferência:', error.response?.data || error.message);

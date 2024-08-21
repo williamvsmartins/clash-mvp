@@ -9,7 +9,6 @@ export const handleButtonsCon = async (client : Client, interaction: Interaction
 
     //  VERIFICAR O ERRO QUE ESTÁ DANDO AQUI AO TENTAR PEGAR O PRECO DO EMBED
     const priceString = interaction.message.embeds[0].data.fields![1].value; // pegando indefinido?
-    console.log(priceString)
     const cleanedPriceString = priceString.replace(/[^\d,.-]/g, '').replace(',', '.'); 
     const price = parseFloat(cleanedPriceString);
 
@@ -48,7 +47,7 @@ export const handleButtonsCon = async (client : Client, interaction: Interaction
             deleteChannel(channel);
         } else{
             channel.send(`erro ao confirmar a partida`);
-            await interaction.update({ components: [rowEnable] })
+            // await interaction.update({ components: [rowEnable] })
         }
 
     } else if (interaction.customId === 'Cancelar') {

@@ -6,7 +6,6 @@ const { notion_api_key, database_id } = config;
 const notion = new Client({ auth: notion_api_key })
 
 export const saveNotion = async (userId: string, pix:string,  valor: number) => {
-    console.log('notion')
     try {
         const databaseId = database_id;
 

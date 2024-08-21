@@ -17,8 +17,6 @@ export const confirmPay = async (id: string) => {
             }
         );
 
-        console.log(response.data.status);
-
         return response.data.status;
     } catch (error) {
         console.error('Erro ao confirmar pagamento:', error);

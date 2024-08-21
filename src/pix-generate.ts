@@ -13,7 +13,6 @@ export const setupPixGenerate = async (client: Client, interaction: Interaction,
   const idempotencyKey = v4(); // Gera um UUID único para a requisição
   try {
     
-    console.log('gerando')
     const paymentResponse = await axios.post(
         'https://api.mercadopago.com/v1/payments',
         {
