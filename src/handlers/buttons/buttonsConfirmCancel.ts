@@ -47,7 +47,7 @@ export const handleButtonsCon = async (client : Client, interaction: Interaction
             deleteChannel(channel);
         } else{
             channel.send(`erro ao confirmar a partida`);
-            // await interaction.update({ components: [rowEnable] })
+            // await interaction.update({ components: [rowEnable] }) PROBLEMA AO REATIVAR A PARTIDA
         }
 
     } else if (interaction.customId === 'Cancelar') {
