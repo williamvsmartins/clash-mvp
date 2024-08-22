@@ -24,7 +24,6 @@ export const setupQueueManager = async (client: Client, interaction: Interaction
       
       if (queue.includes(userId)) {
         await interaction.reply({ content: 'Você já está na fila!', ephemeral: true });
-        await interaction.deferUpdate();
         return;
       }
       //aqui
@@ -44,11 +43,6 @@ export const setupQueueManager = async (client: Client, interaction: Interaction
           const [user1, user2] = queue;
           await createChannelForUsers(client, interaction.guild!, channelId, messageId, apostaId, user1, user2, price);
         }
-        try {
-          await interaction.deferUpdate();
-        } catch (error) {
-          console.error('Erro ao tentar deferUpdate:', error);
-        }
       } else{
         await interaction.reply({ content: `saldo insuficiente para esta aposta, seu saldo atual é de: ${saldo}`, ephemeral: true })
       }
@@ -60,11 +54,9 @@ export const setupQueueManager = async (client: Client, interaction: Interaction
         queue = removeFromQueue(apostaId, userId);
   
         await updateQueueEmbed(channelId, messageId, apostaId, client);
-        await interaction.deferUpdate()
         
       } else{
         await interaction.reply({ content: 'Você não está na fila!', ephemeral: true });
-        await interaction.deferUpdate()
       }
     }
 };
