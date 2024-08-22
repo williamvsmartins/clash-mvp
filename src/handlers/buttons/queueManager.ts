@@ -59,6 +59,9 @@ export const setupQueueManager = async (client: Client, interaction: Interaction
         await interaction.reply({ content: 'Você não está na fila!', ephemeral: true });
       }
     }
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.deferUpdate();
+    }
 };
 
 
