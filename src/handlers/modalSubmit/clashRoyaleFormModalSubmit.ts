@@ -18,6 +18,8 @@ export const setupClashRoyaleFormModalSubmit = async (client: Client, interactio
       clashTag = clashTag.slice(1);
     }
 
+    clashTag.toUpperCase();
+
     try {
       const response = await axios.get(`https://api.clashroyale.com/v1/players/%23${clashTag}`, {
         headers: { 'Authorization': `Bearer ${clashRoyaleApiToken}` },

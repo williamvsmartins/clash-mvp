@@ -19,8 +19,11 @@ export const buttonsWalletModal = async (client: Client, interaction: Interactio
             await interaction.reply({ content: 'Por favor, insira um valor numérico válido maior ou igual a 1.10.', ephemeral: true });
         } else {
             const paymentId = await setupPixGenerate(client, interaction, valorNumerico);
-            if(await paymentChack(client, paymentId, interaction.user.id)){
-                deposito(interaction.user.id, valorNumerico);
+            if(paymentId != ''){
+                interaction.reply({ content: `Qr code e pix copia e cola enviado ao seu canal privado, por favor faca o pagamente em até 5 minutos`, ephemeral: true })
+                if(await paymentChack(client, paymentId, interaction.user.id)){
+                    deposito(interaction.user.id, valorNumerico);
+                }
             }
         }
     } else if(interaction.customId === 'saque_modal'){

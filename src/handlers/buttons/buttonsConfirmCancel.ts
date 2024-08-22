@@ -3,7 +3,7 @@ import { validMatch } from "../../validateMatch";
 import { deleteChannel } from "../../deleteChannel";
 
 export const handleButtonsCon = async (client : Client, interaction: Interaction, userId1: string, userId2: string,
-     channel: TextChannel, dateChannel: Date) => { //falta adicionar os ids das transacoes para reembolso em cancelar
+     channel: TextChannel, dateChannel: Date) => { 
     
     if(!interaction.isButton()) return;
 

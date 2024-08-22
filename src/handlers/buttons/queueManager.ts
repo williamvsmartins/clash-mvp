@@ -4,6 +4,7 @@ import { updateQueueEmbed } from '../../updateQueueEmbed';
 import { getMoney } from '../../getMoneys';
 import { embedConfPlay } from '../../embed-Confirm-PLay';
 import { confirmacoes } from './buttonsConfirmBet';
+import { deleteChannel } from '../../deleteChannel';
 
 //precisa da observacap
 export const setupQueueManager = async (client: Client, interaction: Interaction) => {
@@ -56,14 +57,14 @@ export const setupQueueManager = async (client: Client, interaction: Interaction
 
       if (!queue.includes(userId)) {
         await interaction.reply({ content: 'Você não está na fila!', ephemeral: true });
-        interaction.deferUpdate()
+        await interaction.deferUpdate()
         return;
       }
 
       queue = removeFromQueue(apostaId, userId);
 
       await updateQueueEmbed(channelId, messageId, apostaId, client);
-      interaction.deferUpdate()
+      await interaction.deferUpdate()
     }
 };
 
@@ -112,9 +113,19 @@ const createChannelForUsers = async (client: Client, guild: Guild, channelId: st
   
   await channel.send(`Bem-vindos, <@${user1}> e <@${user2}>! Este é o seu canal privado.`);
 
-  const message = await channel.send(embedConfPlay(price))
+  const message = await channel.send(embedConfPlay(price));
 
-  // handleButtonsConfet(client, interaction, user1, user2, channel, message);
+  // Inicia o temporizador de 5 minutos
+  const timeout = setTimeout(async () => {
+    if (confirmacoes.get(channel.id)?.length! < 2) {
+        await channel.send("Tempo esgotado! Aposta não confirmada, canal será excluído.");
+        await deleteChannel(channel);
+    }
+  }, 5 * 60 * 1000); // 5 minutos em milissegundos
+
+  // Salva o timeout para cancelar se ambos confirmarem
+  (channel as any).timeout = timeout;
+
 };
 
 const removeFromQueue = (apostaId: string, userId: string): string[] => {
