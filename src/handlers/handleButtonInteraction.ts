@@ -4,6 +4,8 @@ import { handleButtonsCon } from './buttons/buttonsConfirmCancel';
 import { setupClashRoyaleForm } from './buttons/clashRoyaleForm';
 import { setupQueueManager } from './buttons/queueManager';
 import { buttonsWallet } from './buttons/buttons-wallet';
+import { getConfirmations } from '../db/getConfirmations';
+import { Confirmation } from '../db/database';
 
 export const handleButtonInteraction = async (client: Client, interaction: Interaction) => {
   if (!interaction.isButton()) return;
@@ -23,12 +25,15 @@ export const handleButtonInteraction = async (client: Client, interaction: Inter
             handleButtonsConfet(client, interaction, user1, user2, channel, message)
         }
     }else if(id === 'Finalizar' || id === 'Cancelar'){
-        const confirmation = pendingConfirmations.get(channel.id);
-        if (typeof confirmation === 'undefined') {
-            channel.send('indefinido')
-        }else{
-            handleButtonsCon(client, interaction, confirmation.user1, confirmation.user2, confirmation.channel, confirmation.date);
-            pendingConfirmations.delete(channel.id); // Limpa a entrada após usar
+        const confirmation = await getConfirmations(channel.id);
+        if (confirmation){
+            const user1 = confirmation.user1 ?? ''
+            const user2 = confirmation.user2 ?? ''
+            const channelId = confirmation.channelId ?? '';
+            const channel = await client.channels.fetch(channelId) as TextChannel;
+            const date = confirmation.date ?? new Date('1970-01-01T00:00:00Z')
+
+            handleButtonsCon(client, interaction, user1, user2, channel, date);
         }
     } else if(id === 'add_tag'){
         setupClashRoyaleForm(client, interaction);

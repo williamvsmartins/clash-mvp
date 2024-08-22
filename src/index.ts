@@ -1,12 +1,13 @@
 import 'dotenv/config'
 import config from '../config';
-import { Client, GatewayIntentBits, Interaction, Message, Partials } from 'discord.js';
+import { Client, GatewayIntentBits, Interaction, Message, Partials, TextChannel } from 'discord.js';
 import { registerCommands } from './staff/commands';
-import { handleButtonInteraction, pendingConfirmations } from './handlers/handleButtonInteraction';
+import { handleButtonInteraction } from './handlers/handleButtonInteraction';
 import { handleFormSubmission } from './handlers/handleFormSubmission';
 import { embedConf } from './embed/embed-Confirm-Cancel';
 import { handlerComandStaff } from './staff/handlerCommand';
 import { handleSelectInteraction } from './handlers/handleSelectInteraction';
+import { getConfirmations } from './db/getConfirmations';
 
 const { discordToken } = config;
 
@@ -35,16 +36,21 @@ client.once('ready', async () => {
     }
   });
 
-  client.on('messageCreate', async (msg: Message) => {
-    const confirmation = pendingConfirmations.get(msg.channel.id);
-    if (confirmation) {
-      if (msg.author.id === confirmation.user1 || msg.author.id === confirmation.user2) {
-        if (msg.content.includes('https://link.clashroyale.com/invite/friend/')) {
-          await confirmation.channel.send(embedConf(msg.content, confirmation.price));
-          await confirmation.channel.setName(`Aposta confirmada - ${confirmation.channel.id}`);
-        }
+client.on('messageCreate', async (msg: Message) => {
+  try {
+    const confirmation = await getConfirmations(msg.channel.id);
+    if (confirmation && (msg.author.id === confirmation.user1 || msg.author.id === confirmation.user2)) {
+      if (msg.content.includes('https://link.clashroyale.com/invite/friend/')) {
+        const price = confirmation.price ?? 0;
+        const channel = msg.channel as TextChannel;
+          
+        await msg.channel.send(embedConf(msg.content, price));
+        await channel.setName(`Aposta confirmada - ${msg.channel.id}`);
       }
     }
+  } catch (error) {
+      console.error('Erro ao processar mensagem:', error);
+  }
   });
 
   

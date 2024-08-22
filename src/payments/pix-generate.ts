@@ -11,6 +11,7 @@ const { mercado_pago_token } = config;
 
 export const setupPixGenerate = async (client: Client, interaction: Interaction, amount: number): Promise<string> => {
   const idempotencyKey = v4(); // Gera um UUID único para a requisição
+  const expirationTime = new Date(Date.now() + 5 * 60 * 1000); // 5 minutos a partir do momento atual
   try {
     
     const paymentResponse = await axios.post(
@@ -25,7 +26,8 @@ export const setupPixGenerate = async (client: Client, interaction: Interaction,
               type: 'CPF',
               number: '07465613345' // CPF do pagador (pode ser um valor padrão)
             }
-          }
+          },
+          date_of_expiration: expirationTime.toISOString()
         },
         {
           headers: {

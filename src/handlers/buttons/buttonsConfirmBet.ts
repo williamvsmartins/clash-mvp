@@ -1,7 +1,7 @@
 import { Client, Interaction, TextChannel, ActionRowBuilder, ButtonBuilder, ButtonStyle, Message } from "discord.js";
 import { deleteChannel } from "../../match/deleteChannel";
-import { pendingConfirmations } from "../handleButtonInteraction";
 import { descontoPartida } from "../../db/moneys";
+import { Confirmation } from "../../db/database";
 
 export const confirmacoes: Map<string, string[]> = new Map();
 
@@ -18,6 +18,8 @@ export const handleButtonsConfet = async (
     const mapConf = confirmacoes.get(channel.id) || [];
     
     if (interaction.customId === 'Aceitar') {
+
+        // if(mapConf.length == 2) interaction.reply({content: 'Partida já iniciada'}) // se houver dois na aposta durante processamento
         if (!mapConf.includes(interaction.user.id)) {
             mapConf.push(interaction.user.id);
             confirmacoes.set(channel.id, mapConf);
@@ -48,22 +50,20 @@ export const handleButtonsConfet = async (
                 clearTimeout((channel as any).timeout as NodeJS.Timeout);
 
                 const confirmationDate = new Date();
-                pendingConfirmations.set(channel.id, {
-                    user1: userId1,
-                    user2: userId2,
-                    channel: channel,
-                    message: message,
-                    date: confirmationDate,
-                    price: price,
-                });
+                const channelId = channel.id;
+                const messageId = message.id;
+                
+                await Confirmation.updateOne(
+                    { channelId },
+                    { user1: userId1, user2: userId2, messageId, date: confirmationDate, price },
+                    { upsert: true }
+                );
 
                 await descontoPartida(userId1, userId2, price);
-                await channel.send(`Ambos jogadores confirmaram a aposta \n O valor da aposta já foi debitado
-                    das carteiras, boa sorte aos jogadores`);
+                await channel.send(`Ambos jogadores confirmaram a aposta\n O valor da aposta já foi debitado das carteiras, boa sorte aos jogadores`);
 
                 await message.delete();
-                await channel.send(`Por favor, algum dos dois jogadores envie o convite de amizade 
-                    para a sua partida escolhida\n A partida só será iniciada após o envio do convite de amizade!!!`);
+                await channel.send(`Por favor, algum dos dois jogadores envie o convite de amizade para a sua partida escolhida\n A partida só será iniciada após o envio do convite de amizade!!!`);
                 confirmacoes.delete(channel.id);
             }
         } else {
