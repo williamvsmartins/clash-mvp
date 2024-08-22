@@ -4,6 +4,7 @@ import { setupFixedMessageWalle } from "./fixed-message-wallet";
 import { setupFixedMessageQueue } from "./fixed-message-queue";
 import { setupFixedMessagePix } from "./fixed-message-pix";
 import { fixedMessageSuport } from "./fixed-message-support";
+import { tabelaPrecosEmbed } from "./fixed-message-values";
 
 
 export const handlerComandStaff = async (client: Client, interaction: Interaction) => {
@@ -16,6 +17,7 @@ export const handlerComandStaff = async (client: Client, interaction: Interactio
         else if(id === 'fila')  setupFixedMessageQueue(client, interaction);
         else if(id === 'pix') setupFixedMessagePix(client, interaction);
         else if(id === 'support') fixedMessageSuport(client, interaction);
+        else if(id === 'values') tabelaPrecosEmbed(client, interaction);
     }
 
 }
