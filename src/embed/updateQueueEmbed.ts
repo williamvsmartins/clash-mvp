@@ -17,6 +17,7 @@ export const updateQueueEmbed = async (channelId: string, messageId: string, apo
   if (playersField) {
     const queue = filas.get(apostaId) || [];
     const queueList = queue.length > 0 ? queue.map(id => `<@${id}>`).join('\n') : 'Nenhum jogador na fila';
+    playersField.value = `${queueList}\n\n`;
   }
 
   const updatedEmbed = new EmbedBuilder()

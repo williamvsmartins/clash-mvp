@@ -57,9 +57,7 @@ export const validMatch = async (user1: string, user2: string,
                 } else{
                     channel.send(`Insconsistência na data da partida!!`)
                 }
-            } else{
-                channel.send('tags imcompatíveis')
-            }
+            } 
         } else{
             channel.send(`erro ao verificar`)
         }
