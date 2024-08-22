@@ -44,6 +44,12 @@ export const fixedMessageSuport = async (client: Client, interaction: Interactio
                         value: 'refund',
                         emoji: '💰',
                     },
+                    {
+                      label: 'DÚVIDAS',
+                      description: 'Clique aqui para abrir um ticket para tirar suas dúvidas',
+                      value: 'duvid',
+                      emoji: '🤔',
+                  },
                 ]),
         );
     

@@ -7,7 +7,7 @@ export const handleSelectInteraction = async (client: Client, interaction: Inter
 
     const id = interaction.values[0];
 
-    if(id === 'denuncia' || id === 'refund'){
+    if(id === 'denuncia' || id === 'refund' || id === 'duvid'){
         selectSupport(interaction);
     }
 }

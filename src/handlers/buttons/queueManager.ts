@@ -85,6 +85,7 @@ const createChannelForUsers = async (client: Client, guild: Guild, channelId: st
   const channel = await guild.channels.create({
     name: `aposta-${user1}-${user2}-${apostaId}`,
     type: ChannelType.GuildText,
+    parent: '1276246016382992395',
     permissionOverwrites: [
       {
         id: guild.roles.everyone,

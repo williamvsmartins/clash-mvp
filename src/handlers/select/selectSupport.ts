@@ -18,6 +18,8 @@ export const selectSupport = async (interaction: Interaction) => {
             channelName = `denuncia-${interaction.user.username}`;
         } else if (id === 'refund') {
             channelName = `reembolso-${interaction.user.username}`;
+        } else if (id === 'duvid'){
+            channelName = `duvida-${interaction.user.username}`
         }
 
         const privateChannel = await category.guild.channels.create({
