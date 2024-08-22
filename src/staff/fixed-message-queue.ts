@@ -38,9 +38,6 @@ export const setupFixedMessageQueue = async (client: Client, interaction: Intera
     minimumFractionDigits: 2,
   });
 
-  const imagePath = path.join(__dirname, '../img/clashBet.jpg');
-  const attachment = new AttachmentBuilder(imagePath);
-
   const embed = new EmbedBuilder()
       .setColor('#0099ff')
       .setTitle('1v1 Clássico | Fila de Competição')
@@ -49,7 +46,7 @@ export const setupFixedMessageQueue = async (client: Client, interaction: Intera
         { name: 'Valor', value: currencyFormatter.format(value)},
         { name: 'Jogadores', value: 'Nenhum jogador na fila \n\n', inline: false },
       ])
-      .setThumbnail('attachment://clashBet.jpg')
+      .setThumbnail('https://cdn.discordapp.com/attachments/1276274460449575021/1276275081722593359/clashBet.jpg?ex=66c8ef4b&is=66c79dcb&hm=1fdd0951cc8461bb6585478dea0badaace2e018428cbe1fe761edc3c70271cb2&')
       .setFooter({ text: 'Clash Apostas' });
 
   const row = new ActionRowBuilder<ButtonBuilder>()
@@ -65,7 +62,7 @@ export const setupFixedMessageQueue = async (client: Client, interaction: Intera
     );
   
 
-  await channel.send({ content: 'Clique no botão abaixo para entrar na fila:', embeds: [embed], components: [row] , files: [attachment] });
+  await channel.send({ embeds: [embed], components: [row] });
 
   await interaction.reply({ content: 'Fila enviada com sucesso!', ephemeral: true });
 
