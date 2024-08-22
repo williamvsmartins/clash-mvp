@@ -1,5 +1,5 @@
 import { ActionRowBuilder, Client, Interaction, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
-import { getMoney } from "../../getMoneys";
+import { getMoney } from "../../db/getMoneys";
 
 
 export const buttonsWallet = async (client: Client, interaction: Interaction) => {

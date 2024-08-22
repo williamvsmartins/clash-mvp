@@ -1,7 +1,7 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { Client } from 'discord.js';
-import config from '../config';
+import config from '../../config';
 
 const { guildId, discordToken } = config;
 
@@ -44,6 +44,18 @@ export const registerCommands = async (client: Client): Promise<void> => {
     {
       name: 'carteira',
       description: 'Fixa os dados da carteira',
+      options: [
+        {
+          name: 'canal',
+          description: 'O ID do canal onde a mensagem será fixada',
+          type: 7, // 7 representa um canal no Discord (CHANNEL)
+          required: true
+        }
+      ]
+    }, 
+    {
+      name: 'support',
+      description: 'Fixa o embed para criar um suport',
       options: [
         {
           name: 'canal',

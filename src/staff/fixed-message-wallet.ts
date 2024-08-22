@@ -1,9 +1,8 @@
-import { TextChannel, Client, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import { TextChannel, Client, ActionRowBuilder, ButtonBuilder, ButtonStyle, Interaction } from 'discord.js';
 import config from '../../config';
-import { Guild } from '../database';
+import { Guild } from '../db/database';
 
-export const setupFixedMessageWalle = async (client: Client): Promise<void> => {
-  client.on('interactionCreate', async interaction => {
+export const setupFixedMessageWalle = async (client: Client, interaction: Interaction): Promise<void> => {
     if (!interaction.isCommand() || interaction.commandName !== 'carteira') return;
 
     const { options } = interaction
@@ -46,7 +45,6 @@ export const setupFixedMessageWalle = async (client: Client): Promise<void> => {
     await saveFixedMessageId(guildId, fixedMessageId);
 
     await interaction.reply({ content: 'Mensagem fixa enviada com sucesso!', ephemeral: true });
-  });
 };
 
 async function saveFixedMessageId(guildId: string, fixedMessageId: string): Promise<void> {

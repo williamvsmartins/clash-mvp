@@ -1,6 +1,6 @@
 import { Client, Interaction, TextChannel, ActionRowBuilder, ButtonBuilder, ButtonStyle } from "discord.js";
-import { validMatch } from "../../validateMatch";
-import { deleteChannel } from "../../deleteChannel";
+import { validMatch } from "../../match/validateMatch";
+import { deleteChannel } from "../../match/deleteChannel";
 
 export const handleButtonsCon = async (client : Client, interaction: Interaction, userId1: string, userId2: string,
      channel: TextChannel, dateChannel: Date) => { 

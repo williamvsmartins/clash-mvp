@@ -1,70 +1,74 @@
-import { TextChannel, Client, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
-import { Guild } from '../database';
+import { TextChannel, Client, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Interaction, AttachmentBuilder } from 'discord.js';
+import { Guild } from '../db/database';
+import path from 'path';
 
-export const setupFixedMessageQueue = async (client: Client): Promise<void> => {
-  client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand() || interaction.commandName !== 'fila') return;
+export const setupFixedMessageQueue = async (client: Client, interaction: Interaction): Promise<void> => {
 
-    const { options } = interaction
+  if (!interaction.isCommand() || interaction.commandName !== 'fila') return;
 
-    const channelOption  = options.get('canal')
-    const valueOption  = options.get('valor')
+  const { options } = interaction
 
-    if (!channelOption) {
-      await interaction.reply({
-        content: "É necessário especificar o ID do canal!",
-        ephemeral: true
-      });
-      return;
-    }
+  const channelOption  = options.get('canal')
+  const valueOption  = options.get('valor')
 
-    if (!valueOption?.value) {
-      await interaction.reply({
-        content: "É necessário especificar o valor em reais para a fila",
-        ephemeral: true
-      });
-      return;
-    }
-
-    const channelId = channelOption.value as string;
-    const value = valueOption.value as number
-    const channel = await client.channels.fetch(channelId);
-    if (!channel || !(channel instanceof TextChannel)) return;
-
-    const currencyFormatter = new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 2,
+  if (!channelOption) {
+    await interaction.reply({
+      content: "É necessário especificar o ID do canal!",
+      ephemeral: true
     });
+    return;
+  }
 
-    const embed = new EmbedBuilder()
-        .setColor('#0099ff')
-        .setTitle('1v1 Clássico | Fila de Competição')
-        .setDescription(`Formato\n1v1 Clássico\n\n`)
-        .addFields([
-          { name: 'Valor', value: currencyFormatter.format(value)},
-          { name: 'Jogadores', value: 'Nenhum jogador na fila \n\n', inline: false },
-        ])
-        .setThumbnail('https://i.ytimg.com/vi/uWsQ5IWVilM/maxresdefault.jpg')
-        .setFooter({ text: 'Clash Apostas' });
+  if (!valueOption?.value) {
+    await interaction.reply({
+      content: "É necessário especificar o valor em reais para a fila",
+      ephemeral: true
+    });
+    return;
+  }
 
-    const row = new ActionRowBuilder<ButtonBuilder>()
-      .addComponents(
-        new ButtonBuilder()
-          .setCustomId('enter_queue')
-          .setLabel('Entrar na Fila')
-          .setStyle(ButtonStyle.Primary),
-        new ButtonBuilder()
-          .setCustomId('leave_queue')
-          .setLabel('Sair da Fila')
-          .setStyle(ButtonStyle.Danger)
-      );
-    
+  const channelId = channelOption.value as string;
+  const value = valueOption.value as number
+  const channel = await client.channels.fetch(channelId);
+  if (!channel || !(channel instanceof TextChannel)) return;
 
-    await channel.send({ content: 'Clique no botão abaixo para entrar na fila:', embeds: [embed], components: [row] });
-
-    await interaction.reply({ content: 'Fila enviada com sucesso!', ephemeral: true });
+  const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
   });
+
+  const imagePath = path.join(__dirname, '../img/clashBet.jpg');
+  const attachment = new AttachmentBuilder(imagePath);
+
+  const embed = new EmbedBuilder()
+      .setColor('#0099ff')
+      .setTitle('1v1 Clássico | Fila de Competição')
+      .setDescription(`Formato\n1v1 Clássico\n\n`)
+      .addFields([
+        { name: 'Valor', value: currencyFormatter.format(value)},
+        { name: 'Jogadores', value: 'Nenhum jogador na fila \n\n', inline: false },
+      ])
+      .setThumbnail('attachment://clashBet.jpg')
+      .setFooter({ text: 'Clash Apostas' });
+
+  const row = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId('enter_queue')
+        .setLabel('Entrar na Fila')
+        .setStyle(ButtonStyle.Primary),
+      new ButtonBuilder()
+        .setCustomId('leave_queue')
+        .setLabel('Sair da Fila')
+        .setStyle(ButtonStyle.Danger)
+    );
+  
+
+  await channel.send({ content: 'Clique no botão abaixo para entrar na fila:', embeds: [embed], components: [row] , files: [attachment] });
+
+  await interaction.reply({ content: 'Fila enviada com sucesso!', ephemeral: true });
+
 };
 
 // async function saveFixedMessageId(guildId: string, fixedMessageId: string): Promise<void> {

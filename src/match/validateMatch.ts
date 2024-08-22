@@ -1,9 +1,9 @@
 import axios from "axios";
 import { TextChannel } from "discord.js";
-import { getClashTag } from './getClashTag';
+import { getClashTag } from '../db/getClashTag';
 
-import config from '../config'
-import { deposito } from "./moneys";
+import config from '../../config'
+import { deposito } from "../db/moneys";
 
 const { clashRoyaleApiToken } = config;
 

@@ -1,10 +1,12 @@
 import 'dotenv/config'
 import config from '../config';
 import { Client, GatewayIntentBits, Interaction, Message, Partials } from 'discord.js';
-import { registerCommands } from './commands';
+import { registerCommands } from './staff/commands';
 import { handleButtonInteraction, pendingConfirmations } from './handlers/handleButtonInteraction';
 import { handleFormSubmission } from './handlers/handleFormSubmission';
-import { embedConf } from './embed-Confirm-Cancel';
+import { embedConf } from './embed/embed-Confirm-Cancel';
+import { handlerComandStaff } from './staff/handlerCommand';
+import { handleSelectInteraction } from './handlers/handleSelectInteraction';
 
 const { discordToken } = config;
 
@@ -26,6 +28,10 @@ client.once('ready', async () => {
       await handleButtonInteraction(client, interaction);
     } else if (interaction.isModalSubmit()) {
       await handleFormSubmission(client, interaction);
+    } else if (interaction.isCommand()){
+      handlerComandStaff(client, interaction);
+    } else if (interaction.isStringSelectMenu()){
+      handleSelectInteraction(client, interaction);
     }
   });
 

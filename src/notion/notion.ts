@@ -1,5 +1,5 @@
 import { Client } from "@notionhq/client";
-import config from '../config';
+import config from '../../config';
 
 const { notion_api_key, database_id } = config;
 

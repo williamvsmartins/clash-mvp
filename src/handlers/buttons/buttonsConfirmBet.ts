@@ -1,7 +1,7 @@
 import { Client, Interaction, TextChannel, ActionRowBuilder, ButtonBuilder, ButtonStyle, Message } from "discord.js";
-import { deleteChannel } from "../../deleteChannel";
+import { deleteChannel } from "../../match/deleteChannel";
 import { pendingConfirmations } from "../handleButtonInteraction";
-import { descontoPartida } from "../../moneys";
+import { descontoPartida } from "../../db/moneys";
 
 export const confirmacoes: Map<string, string[]> = new Map();
 

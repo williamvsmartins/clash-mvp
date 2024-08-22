@@ -1,6 +1,6 @@
 import { Client, Interaction  } from 'discord.js';
 import axios from 'axios';
-import config from '../config';
+import config from '../../config';
 import { v4 } from 'uuid'
 import qr from 'qr-image';
 import { writeFileSync, unlinkSync } from 'fs';

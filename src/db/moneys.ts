@@ -1,5 +1,5 @@
 import { User } from "./database";
-import { saveNotion } from "./notion";
+import { saveNotion } from "../notion/notion";
 
 
 export const deposito = async (id: string, valor: number) => {

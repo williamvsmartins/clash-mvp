@@ -1,5 +1,5 @@
 import { Client, Interaction } from "discord.js";
-import { User } from "../../database";
+import { User } from "../../db/database";
 import axios from 'axios';
 import config from '../../../config';
 

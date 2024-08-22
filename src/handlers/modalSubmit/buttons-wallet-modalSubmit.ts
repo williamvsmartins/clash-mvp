@@ -1,8 +1,8 @@
 import { Client, Interaction } from "discord.js";
-import { setupPixGenerate } from "../../pix-generate";
-import { paymentChack } from "../../confirm-pix";
-import { deposito, saque } from "../../moneys";
-import { getMoney } from "../../getMoneys";
+import { setupPixGenerate } from "../../payments/pix-generate";
+import { paymentChack } from "../../payments/confirm-pix";
+import { deposito, saque } from "../../db/moneys";
+import { getMoney } from "../../db/getMoneys";
 
 export const buttonsWalletModal = async (client: Client, interaction: Interaction) => {
     if (!interaction.isModalSubmit()) return;

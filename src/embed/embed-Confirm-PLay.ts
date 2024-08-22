@@ -1,6 +1,11 @@
-import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,Interaction } from 'discord.js'
+import { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle,Interaction, AttachmentBuilder } from 'discord.js'
+import path from 'path';
 
 export const embedConfPlay = (price: number) => {
+
+    const imagePath = path.join(__dirname, '../img/clashBet.jpg');
+    const attachment = new AttachmentBuilder(imagePath);
+
     const embed = new EmbedBuilder()
         .setColor('#2f3136') // Cor do card
         .setTitle('Aguardando Jogadores') // Título do card
@@ -10,7 +15,7 @@ export const embedConfPlay = (price: number) => {
             { name: 'Vencedor recebe:', value: `${(price-0.1)*2}` }
 
         ])
-        .setThumbnail('https://i.ytimg.com/vi/uWsQ5IWVilM/maxresdefault.jpg')
+        .setThumbnail('attachment://clashBet.jpg')
         .setFooter({ text: 'BetClash' }); // Rodapé do card
     
     // Criação dos Botões
@@ -29,5 +34,5 @@ export const embedConfPlay = (price: number) => {
         .addComponents(botaoEntrar, botaoSair);
 
     // Retorna o embed junto com os botões
-    return { embeds: [embed], components: [actionRow] };
+    return { embeds: [embed], components: [actionRow], files: [attachment] };
 }

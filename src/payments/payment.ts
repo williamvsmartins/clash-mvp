@@ -1,5 +1,5 @@
 import axios from "axios";
-import config from '../config';
+import config from '../../config';
 import { v4 } from 'uuid'
 
 const { mercado_pago_token } = config;

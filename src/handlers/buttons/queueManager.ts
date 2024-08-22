@@ -1,10 +1,10 @@
 import { ChannelType, Client, Guild, Interaction, TextChannel } from 'discord.js';
-import { updateQueueEmbed } from '../../updateQueueEmbed';
+import { updateQueueEmbed } from '../../embed/updateQueueEmbed';
 
-import { getMoney } from '../../getMoneys';
-import { embedConfPlay } from '../../embed-Confirm-PLay';
+import { getMoney } from '../../db/getMoneys';
+import { embedConfPlay } from '../../embed/embed-Confirm-PLay';
 import { confirmacoes } from './buttonsConfirmBet';
-import { deleteChannel } from '../../deleteChannel';
+import { deleteChannel } from '../../match/deleteChannel';
 
 //precisa da observacap
 export const setupQueueManager = async (client: Client, interaction: Interaction) => {
@@ -24,6 +24,7 @@ export const setupQueueManager = async (client: Client, interaction: Interaction
       
       if (queue.includes(userId)) {
         await interaction.reply({ content: 'Você já está na fila!', ephemeral: true });
+        await interaction.deferUpdate();
         return;
       }
       //aqui
@@ -55,16 +56,16 @@ export const setupQueueManager = async (client: Client, interaction: Interaction
       messageId = interaction.message.id;
       queue = filas.get(apostaId) || [];
 
-      if (!queue.includes(userId)) {
+      if (queue.includes(userId)) {
+        queue = removeFromQueue(apostaId, userId);
+  
+        await updateQueueEmbed(channelId, messageId, apostaId, client);
+        await interaction.deferUpdate()
+        
+      } else{
         await interaction.reply({ content: 'Você não está na fila!', ephemeral: true });
         await interaction.deferUpdate()
-        return;
       }
-
-      queue = removeFromQueue(apostaId, userId);
-
-      await updateQueueEmbed(channelId, messageId, apostaId, client);
-      await interaction.deferUpdate()
     }
 };
 
