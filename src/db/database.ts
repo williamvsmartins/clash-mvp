@@ -25,7 +25,14 @@ const confrmationsSchema = new mongoose.Schema({
   price: {type: Number},
 })
 
+const match = new mongoose.Schema({
+  channelId: {type:String, require:true, unique:true},
+  match: {type: String, require:true},
+  winner: {type: String, require:true},
+  date: {type:String, require:true},
+})
 
 export const Guild = mongoose.model('Guild', guildSchema);
 export const User = mongoose.model('User', userSchema);
 export const Confirmation = mongoose.model('Confirmations', confrmationsSchema);
+export const Match = mongoose.model('Match', match)

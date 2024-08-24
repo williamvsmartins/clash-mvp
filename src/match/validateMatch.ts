@@ -4,6 +4,7 @@ import { getClashTag } from '../db/getClashTag';
 
 import config from '../../config'
 import { deposito } from "../db/moneys";
+import { saveMacth } from "../db/saveMatch";
 
 const { clashRoyaleApiToken } = config;
 
@@ -12,8 +13,8 @@ export const validMatch = async (user1: string, user2: string,
      channel: TextChannel, dateChannel: Date, price: number): Promise<Boolean> => {
     try{
         console.log(`validMatchPrice: ${price}`)
-        const clashTagUser1 = await getClashTag(user1);
-        const clashTagUser2 = await getClashTag(user2);
+        const clashTagUser1 = await getClashTag(user1) ?? '';
+        const clashTagUser2 = await getClashTag(user2) ?? '';
 
         const responseUser1 = await axios.get(`https://api.clashroyale.com/v1/players/%23${clashTagUser1}/battlelog`, {
             headers: { 'Authorization': `Bearer ${clashRoyaleApiToken}` },
@@ -42,15 +43,18 @@ export const validMatch = async (user1: string, user2: string,
                         channel.send(`Realizando pagamento...`)
                         await deposito(user1, (price-0.1)*2)
                         channel.send(`Pagamento realizado com sucesso`)
+                        await saveMacth(channel.id, clashTagUser1, clashTagUser2, user1, localDate);
                     } else if(crownsUser < crownsOponnent){
                         channel.send(`Parabéns pela vitória <@${user2}>`)
                         channel.send(`Realizando pagamento...`)
                         await deposito(user2, (price-0.1)*2)
                         channel.send(`Pagamento realizado com sucesso`)
+                        await saveMacth(channel.id, clashTagUser1, clashTagUser2, user2, localDate);
                     } else{
                         channel.send(`Que empate frenético foi esse????? Estaremos reembolsando os seus valores!`)
                         await deposito(user1, (price-0.1))
                         await deposito(user2, (price-0.1))
+                        await saveMacth(channel.id, clashTagUser1, clashTagUser2, 'empate', localDate);
                     }
                     return true;
 

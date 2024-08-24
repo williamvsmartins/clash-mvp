@@ -5,7 +5,6 @@ import { setupClashRoyaleForm } from './buttons/clashRoyaleForm';
 import { setupQueueManager } from './buttons/queueManager';
 import { buttonsWallet } from './buttons/buttons-wallet';
 import { getConfirmations } from '../db/getConfirmations';
-import { Confirmation } from '../db/database';
 
 export const handleButtonInteraction = async (client: Client, interaction: Interaction) => {
   if (!interaction.isButton()) return;
@@ -44,12 +43,3 @@ export const handleButtonInteraction = async (client: Client, interaction: Inter
     }
 
 };
-
-export const pendingConfirmations = new Map<string, {
-    user1: string;
-    user2: string;
-    channel: TextChannel;
-    message: Message;
-    date: Date;
-    price: number;
-  }>();
