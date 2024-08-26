@@ -19,14 +19,13 @@ export const handleButtonsConfet = async (
     
     if (interaction.customId === 'Aceitar') {
 
-        // if(mapConf.length == 2) interaction.reply({content: 'Partida já iniciada'}) // se houver dois na aposta durante processamento
         if (!mapConf.includes(interaction.user.id)) {
             mapConf.push(interaction.user.id);
             confirmacoes.set(channel.id, mapConf);
 
             const confirmados = mapConf.length;
 
-            const priceString = interaction.message.embeds[0].data.fields![0].value; // pegando indefinido?
+            const priceString = interaction.message.embeds[0].data.fields![0].value;
             const cleanedPriceString = priceString.replace(/[^\d,.-]/g, '').replace(',', '.');
             const price = parseFloat(cleanedPriceString);
 
@@ -70,7 +69,12 @@ export const handleButtonsConfet = async (
             await interaction.reply({ content: "Você já confirmou a aposta.", ephemeral: true });
         }
     } else if (interaction.customId === 'Cancel_inicio') {
+        if (!interaction.replied && !interaction.deferred) {
+            await interaction.deferUpdate();
+        }
         await channel.send(`Aposta cancelada`);
+        // Cancelar o temporizador se ambos confirmarem
+        clearTimeout((channel as any).timeout as NodeJS.Timeout);
         deleteChannel(channel);
     }
 };
