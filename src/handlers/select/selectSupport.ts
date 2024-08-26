@@ -1,5 +1,7 @@
 import { Interaction, PermissionsBitField, TextChannel } from "discord.js";
+import  config  from "../../../config";
 
+const { suportroleid } = config;
 
 export const selectSupport = async (interaction: Interaction) => {
     if(interaction.isStringSelectMenu()){
@@ -40,7 +42,7 @@ export const selectSupport = async (interaction: Interaction) => {
                     ],
                 },
                 {
-                    id: '1270743659289247755', // ID DEV
+                    id: suportroleid, // ID DEV
                     allow: [
                         PermissionsBitField.Flags.ViewChannel,
                         PermissionsBitField.Flags.SendMessages,

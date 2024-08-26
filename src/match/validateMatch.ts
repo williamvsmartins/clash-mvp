@@ -41,19 +41,19 @@ export const validMatch = async (user1: string, user2: string,
                     if(crownsUser > crownsOponnent){
                         channel.send(`Parabéns pela vitória <@${user1}>`)
                         channel.send(`Realizando pagamento...`)
-                        await deposito(user1, (price-0.1)*2)
+                        await deposito(user1, (price-0.25)*2)
                         channel.send(`Pagamento realizado com sucesso`)
                         await saveMacth(channel.id, clashTagUser1, clashTagUser2, user1, localDate);
                     } else if(crownsUser < crownsOponnent){
                         channel.send(`Parabéns pela vitória <@${user2}>`)
                         channel.send(`Realizando pagamento...`)
-                        await deposito(user2, (price-0.1)*2)
+                        await deposito(user2, (price-0.25)*2)
                         channel.send(`Pagamento realizado com sucesso`)
                         await saveMacth(channel.id, clashTagUser1, clashTagUser2, user2, localDate);
                     } else{
                         channel.send(`Que empate frenético foi esse????? Estaremos reembolsando os seus valores!`)
-                        await deposito(user1, (price-0.1))
-                        await deposito(user2, (price-0.1))
+                        await deposito(user1, (price-0.25))
+                        await deposito(user2, (price-0.25))
                         await saveMacth(channel.id, clashTagUser1, clashTagUser2, 'empate', localDate);
                     }
                     return true;
