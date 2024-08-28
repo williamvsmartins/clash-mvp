@@ -1,5 +1,6 @@
 import { Client, Interaction } from "discord.js";
 import { selectSupport } from "./select/selectSupport";
+import { selectFinish } from "./select/selectFinish";
 
 
 export const handleSelectInteraction = async (client: Client, interaction: Interaction) => {
@@ -9,5 +10,7 @@ export const handleSelectInteraction = async (client: Client, interaction: Inter
 
     if(id === 'denuncia' || id === 'refund' || id === 'duvid'){
         selectSupport(interaction);
+    } else if(id === 'finish'){
+        selectFinish(interaction);
     }
 }

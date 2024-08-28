@@ -1,5 +1,6 @@
 import { Interaction, PermissionsBitField, TextChannel } from "discord.js";
 import  config  from "../../../config";
+import { embedFinishSuport } from "../../embed/embed-finish-suport";
 
 const { suportroleid } = config;
 
@@ -42,7 +43,7 @@ export const selectSupport = async (interaction: Interaction) => {
                     ],
                 },
                 {
-                    id: suportroleid, // ID DEV
+                    id: '1270743659289247755', // ID DEV
                     allow: [
                         PermissionsBitField.Flags.ViewChannel,
                         PermissionsBitField.Flags.SendMessages,
@@ -53,5 +54,6 @@ export const selectSupport = async (interaction: Interaction) => {
         });
 
         await interaction.reply({ content: `Canal privado criado: ${privateChannel}`, ephemeral: true });
+        await embedFinishSuport(privateChannel);
     }
 }
