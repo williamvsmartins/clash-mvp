@@ -12,7 +12,7 @@ export const confirmPay = async (id: string) => {
             `https://api.mercadopago.com/v1/payments/${id}`, 
             {
                 headers: {
-                    Authorization: `Bearer ${process.env.mercado_pago_token}`
+                    Authorization: `Bearer ${mercado_pago_token}`
                 }
             }
         );
