@@ -10,6 +10,7 @@ const config = {
   notion_api_key: process.env.NOTION_API_KEY || '',
   database_id: process.env.DATABASE_ID || '',
   suportroleid: process.env.SUPOSUPORTE_ROLE_ID || '',
+  database_deposit_id: process.env.DATABASE_DEPOSIT_ID || '',
 };
 
 export default config;

@@ -3,6 +3,7 @@ import { setupPixGenerate } from "../../payments/pix-generate";
 import { paymentChack } from "../../payments/confirm-pix";
 import { deposito, saque } from "../../db/moneys";
 import { getMoney } from "../../db/getMoneys";
+import { saveDepositNotion } from "../../notion/depositoNotion";
 
 export const buttonsWalletModal = async (client: Client, interaction: Interaction) => {
     if (!interaction.isModalSubmit()) return;
@@ -22,7 +23,8 @@ export const buttonsWalletModal = async (client: Client, interaction: Interactio
             if(paymentId != ''){
                 interaction.reply({ content: `Qr code e pix copia e cola enviado ao seu canal privado, por favor faca o pagamente em até 5 minutos`, ephemeral: true })
                 if(await paymentChack(client, paymentId, interaction.user.id)){
-                    deposito(interaction.user.id, valorNumerico);
+                    await deposito(interaction.user.id, valorNumerico);
+                    await saveDepositNotion(interaction.user.id, valorNumerico);
                 }
             }
         }
