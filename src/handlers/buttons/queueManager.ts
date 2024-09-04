@@ -49,6 +49,7 @@ export const setupQueueManager = async (client: Client, interaction: Interaction
             const user2 = userId;
             await createChannelForUsers(client, interaction.guild!, channelId, messageId, apostaId, user1, user2, price);
         } else{
+          await interaction.deferUpdate();
           await interaction.followUp({ content: `Saldo insuficiente para esta aposta, seu saldo atual é de: ${saldo.toFixed(2)}`, ephemeral: true });
           return;
         }
