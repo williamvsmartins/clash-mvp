@@ -31,8 +31,15 @@ export const validMatch = async (user1: string, user2: string,
 
                 const formattedBattleTime = battleTimeUtc.replace(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2}).*Z$/, '$1-$2-$3T$4:$5:$6Z');
                 const battleDate = new Date(formattedBattleTime);
-                const localDate = battleDate.toLocaleString();
-                const dateChannelLocal = dateChannel.toLocaleString();
+
+                const localDate = battleDate.toLocaleString('pt-BR', {
+                    timeZone: 'America/Sao_Paulo' // Define o fuso como UTC-3 (horário de Brasília)
+                });
+                
+                // Se `dateChannel` é outro objeto Date, converta para o fuso brasileiro também
+                const dateChannelLocal = dateChannel.toLocaleString('pt-BR', {
+                    timeZone: 'America/Sao_Paulo'
+                });
 
                 if(localDate >= dateChannelLocal){
                     const crownsUser = responseUser1.data[0].team[0].crowns;
