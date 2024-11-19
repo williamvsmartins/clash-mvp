@@ -16,7 +16,7 @@ export const validMatch = async (user1: string, user2: string,
         const clashTagUser1 = await getClashTag(user1) ?? '';
         const clashTagUser2 = await getClashTag(user2) ?? '';
 
-        const responseUser1 = await axios.get(`https://api.clashroyale.com/v1/players/%23${clashTagUser1}/battlelog`, {
+        const responseUser1 = await axios.get(`https://proxy.royaleapi.dev/v1/players/%23${clashTagUser1}/battlelog`, {
             headers: { 'Authorization': `Bearer ${clashRoyaleApiToken}` },
         });
 
