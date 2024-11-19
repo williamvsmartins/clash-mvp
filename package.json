@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts"
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup src --out-dir build",
+    "start": "node build/index.js"
   },
   "keywords": [],
   "author": "",
@@ -25,6 +27,7 @@
     "mercadopago": "^2.0.11",
     "mongoose": "^8.4.3",
     "qr-image": "^3.2.0",
+    "tsup": "^8.3.5",
     "uuid": "^10.0.0"
   }
 }
