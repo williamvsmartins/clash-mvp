@@ -2,6 +2,8 @@ import { Client, Interaction, TextChannel, ActionRowBuilder, ButtonBuilder, Butt
 import { deleteChannel } from "../../match/deleteChannel";
 import { descontoPartida } from "../../db/moneys";
 import { Confirmation } from "../../db/database";
+import { confirmationEmbed } from "../../embed/embed-confirmation-play";
+import { nextStepEmbed } from "../../embed/next-step-embed";
 
 export const confirmacoes: Map<string, string[]> = new Map();
 
@@ -59,11 +61,12 @@ export const handleButtonsConfet = async (
                 );
 
                 await descontoPartida(userId1, userId2, price);
-                await channel.send(`Ambos jogadores confirmaram a aposta\n O valor da aposta já foi debitado das carteiras, boa sorte aos jogadores`);
-
                 await message.delete();
-                await channel.send(`Por favor, algum dos dois jogadores envie o convite de amizade para a sua partida escolhida\n A partida só será iniciada após o envio do convite de amizade!!!`);
                 confirmacoes.delete(channel.id);
+
+                await channel.send({ embeds: [confirmationEmbed(price, userId1, userId2)] });
+
+                await channel.send({ embeds: [nextStepEmbed(client)] });
             }
         } else {
             await interaction.reply({ content: "Você já confirmou a aposta.", ephemeral: true });
