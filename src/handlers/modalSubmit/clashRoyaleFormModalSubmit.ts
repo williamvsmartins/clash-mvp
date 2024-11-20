@@ -10,7 +10,6 @@ export const setupClashRoyaleFormModalSubmit = async (client: Client, interactio
     if (!interaction.isModalSubmit() || interaction.customId !== 'clash_tag_modal') return;
 
     var clashTag = interaction.fields.getTextInputValue('clashTag');
-    const pix = interaction.fields.getTextInputValue('pix');
     const userId = interaction.user.id;
     const guild = interaction.guild;
 
@@ -27,7 +26,7 @@ export const setupClashRoyaleFormModalSubmit = async (client: Client, interactio
 
       await User.updateOne(
         { userId },
-        { clashTag, pix, moedas: 0.0 },
+        { clashTag, moedas: 0.0 },
         { upsert: true },
       );
 

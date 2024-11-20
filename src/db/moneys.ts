@@ -1,6 +1,5 @@
 import { User } from "./database";
 import { saveNotion } from "../notion/notion";
-import { paymentPix } from "../payments/payment";
 
 
 export const deposito = async (id: string, valor: number) => {
@@ -15,13 +14,12 @@ export const deposito = async (id: string, valor: number) => {
     }
 }
 
-export const saque = async (id: string, valor: number) => {
+export const saque = async (id: string, valor: number, pix: string) => {
     try{
         const user = await User.findOne({ userId: id });
         if(user){
             user.moedas -= valor;
             await user.save();
-            const pix = user.pix;
 
             await saveNotion(id ,pix || 'pix nao informado', valor);
         }

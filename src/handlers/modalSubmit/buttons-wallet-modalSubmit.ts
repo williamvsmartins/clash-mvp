@@ -50,11 +50,12 @@ export const buttonsWalletModal = async (client: Client, interaction: Interactio
             }
         } else if (interaction.customId === 'saque_modal') {
             const valor = interaction.fields.getTextInputValue('saqueModal');
+            const pix = interaction.fields.getTextInputValue('pix');
             const valorNumerico = parseFloat(valor);
             const saldo = await getMoney(interaction.user.id);
 
             if (valorNumerico <= saldo) {
-                await saque(interaction.user.id, valorNumerico);
+                await saque(interaction.user.id, valorNumerico, pix);
                 await interaction.followUp({
                     content: 'Saque sendo processado. Em até 24h você terá seu saque concluído.',
                     ephemeral: true,

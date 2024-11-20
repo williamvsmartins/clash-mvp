@@ -13,16 +13,10 @@ export const setupClashRoyaleForm = async (client: Client, interaction: Interact
       .setLabel("Sua Tag do Clash Royale")
       .setStyle(TextInputStyle.Short)
       .setRequired(true);
-    
-    const pixInput = new TextInputBuilder()
-      .setCustomId('pix')
-      .setLabel('Sua chave pix')
-      .setStyle(TextInputStyle.Short)
-      .setRequired(true);
+  
 
     const actionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(tagInput);
-    const pixRow = new ActionRowBuilder<TextInputBuilder>().addComponents(pixInput);
 
-    modal.addComponents(actionRow, pixRow);
+    modal.addComponents(actionRow);
     await interaction.showModal(modal);
 };

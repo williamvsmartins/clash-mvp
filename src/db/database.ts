@@ -12,7 +12,6 @@ const guildSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
   userId: { type: String, required: true, unique: true },
   clashTag: String,
-  pix: String,
   moedas: {type: Number, default: 0.0}
 });
 

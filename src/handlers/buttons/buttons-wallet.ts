@@ -38,9 +38,16 @@ export const buttonsWallet = async (client: Client, interaction: Interaction) =>
             .setStyle(TextInputStyle.Short)
             .setRequired(true);
 
-            const depositoRow = new ActionRowBuilder<TextInputBuilder>().addComponents(depositoInput);
+            const pixInput = new TextInputBuilder()
+            .setCustomId('pix')
+            .setLabel('Sua chave pix')
+            .setStyle(TextInputStyle.Short)
+            .setRequired(true);
 
-            modal.addComponents(depositoRow);
+            const depositoRow = new ActionRowBuilder<TextInputBuilder>().addComponents(depositoInput);
+            const pixRow = new ActionRowBuilder<TextInputBuilder>().addComponents(pixInput);
+
+            modal.addComponents(depositoRow, pixRow);
             await interaction.showModal(modal);
     }
 }
