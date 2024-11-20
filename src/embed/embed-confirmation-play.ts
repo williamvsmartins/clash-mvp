@@ -8,7 +8,7 @@ export const confirmationEmbed = (price: number, userId1: string, userId2: strin
         `Ambos jogadores confirmaram a aposta!\n\nO valor da aposta foi debitado das carteiras.\nBoa sorte aos jogadores!`
     )
     .addFields(
-        { name: "Valor da Aposta", value: `${price.toFixed(2)} moedas`, inline: true },
+        { name: "Valor da Aposta", value: `${price.toFixed(2)} RoyalCoins`, inline: true },
         { name: "Jogador 1", value: `<@${userId1}>`, inline: true },
         { name: "Jogador 2", value: `<@${userId2}>`, inline: true }
     )
