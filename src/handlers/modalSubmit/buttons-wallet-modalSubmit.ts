@@ -37,7 +37,7 @@ export const buttonsWalletModal = async (client: Client, interaction: Interactio
             const valorReais = parseFloat(valorInput.replace(",", "."));
             const valorCentavos = Math.round(valorReais * 100);
 
-            if (valorCentavos < 110 + rate) { // Valor mínimo de R$ 1,10 + rate
+            if (valorCentavos < 100 + rate) { // Valor mínimo de R$ 1,00 + rate
                 await interaction.followUp({
                     content: "O valor deve ser maior ou igual a R$ 1,10.",
                     ephemeral: true,
