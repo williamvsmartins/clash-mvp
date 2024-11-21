@@ -1,4 +1,4 @@
-import { Client, Interaction  } from 'discord.js';
+import { Client, Interaction } from 'discord.js';
 import axios from 'axios';
 import config from '../../config';
 import { v4 } from 'uuid'
@@ -13,35 +13,35 @@ export const setupPixGenerate = async (client: Client, interaction: Interaction,
   const idempotencyKey = v4(); // Gera um UUID único para a requisição
   const expirationTime = new Date(Date.now() + 5 * 60 * 1000); // 5 minutos a partir do momento atual
 
-  const localDate = expirationTime.toLocaleString('pt-BR', {
+  const localDate = expirationTime.toLocaleString('en-US', {
     timeZone: 'America/Sao_Paulo' // Define o fuso como UTC-3 (horário de Brasília)
-});
+  });
 
   try {
-    
+
     const paymentResponse = await axios.post(
-        'https://api.mercadopago.com/v1/payments',
-        {
-          transaction_amount: amount / 100,
-          description: 'Pagamento via Pix',
-          payment_method_id: 'pix',
-          payer: {
-            email: 'williamvaltherprogramador@gmail.com', // Email do pagador (pode ser um valor padrão)
-            identification: {
-              type: 'CPF',
-              number: '07465613345' // CPF do pagador (pode ser um valor padrão)
-            }
-          },
-          date_of_expiration: localDate
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${mercado_pago_token}`,  
-            'Content-Type': 'application/json',
-            'X-Idempotency-Key': idempotencyKey
+      'https://api.mercadopago.com/v1/payments',
+      {
+        transaction_amount: amount / 100,
+        description: 'Pagamento via Pix',
+        payment_method_id: 'pix',
+        payer: {
+          email: 'williamvaltherprogramador@gmail.com', // Email do pagador (pode ser um valor padrão)
+          identification: {
+            type: 'CPF',
+            number: '07465613345' // CPF do pagador (pode ser um valor padrão)
           }
+        },
+        date_of_expiration: localDate
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${mercado_pago_token}`,
+          'Content-Type': 'application/json',
+          'X-Idempotency-Key': idempotencyKey
         }
-      );
+      }
+    );
 
     const paymentId = paymentResponse.data.id;
     const qrCodeUrl = paymentResponse.data.point_of_interaction.transaction_data.qr_code;
@@ -71,7 +71,7 @@ export const setupPixGenerate = async (client: Client, interaction: Interaction,
     return '';
   } catch (error) {
     console.error('Erro ao gerar o QR Code:', error);
-    
+
     // await interaction.reply({ content: 'Erro ao gerar qrCode', ephemeral: true });
     return '';
   }
