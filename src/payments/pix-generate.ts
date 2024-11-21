@@ -11,11 +11,8 @@ const { mercado_pago_token } = config;
 
 export const setupPixGenerate = async (client: Client, interaction: Interaction, amount: number): Promise<string> => {
   const idempotencyKey = v4(); // Gera um UUID único para a requisição
-  const expirationTime = new Date(Date.now() + 5 * 60 * 1000); // 5 minutos a partir do momento atual
-
-  const localDate = expirationTime.toLocaleString('en-US', {
-    timeZone: 'America/Sao_Paulo' // Define o fuso como UTC-3 (horário de Brasília)
-  });
+  const expirationTime = new Date(Date.now() + 5 * 60 * 1000);
+  const formattedExpirationTime = expirationTime.toISOString().replace('Z', '-03:00');
 
   try {
 
@@ -32,7 +29,7 @@ export const setupPixGenerate = async (client: Client, interaction: Interaction,
             number: '07465613345' // CPF do pagador (pode ser um valor padrão)
           }
         },
-        date_of_expiration: localDate
+        date_of_expiration: formattedExpirationTime
       },
       {
         headers: {
