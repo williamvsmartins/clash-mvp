@@ -9,7 +9,7 @@ export const embedConf = (link:string, value:number) => {
         .setDescription('Ao final da partida aperte o botao de finalizada') // Descrição com o formato e valor
         .setFields([
             { name: 'Link que convite', value: link },
-            { name: 'Valor da aposta', value: `${value}` },
+            { name: 'Valor da aposta', value: `R$ ${(value / 100).toFixed(2).replace('.', ',')}` },
             { name: 'Finalizar', value: 'Finaliza a partida e realiza o pagamento em moedas' },
             { name: 'Cancelar', value: 'Cancela a aposta se ainda não tiver ocorrido a partida' }
 

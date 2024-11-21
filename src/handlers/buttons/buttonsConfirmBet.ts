@@ -30,6 +30,7 @@ export const handleButtonsConfet = async (
             const priceString = interaction.message.embeds[0].data.fields![0].value;
             const cleanedPriceString = priceString.replace(/[^\d,.-]/g, '').replace(',', '.');
             const price = parseFloat(cleanedPriceString);
+            const priceInCents = Math.round(price * 100);
 
             if (confirmados < 2) {
                 const row = new ActionRowBuilder<ButtonBuilder>()
@@ -56,15 +57,15 @@ export const handleButtonsConfet = async (
                 
                 await Confirmation.updateOne(
                     { channelId },
-                    { user1: userId1, user2: userId2, messageId, date: confirmationDate, price },
+                    { user1: userId1, user2: userId2, messageId, date: confirmationDate, price: priceInCents },
                     { upsert: true }
                 );
 
-                await descontoPartida(userId1, userId2, price);
+                await descontoPartida(userId1, userId2, priceInCents);
                 await message.delete();
                 confirmacoes.delete(channel.id);
 
-                await channel.send({ embeds: [confirmationEmbed(price, userId1, userId2)] });
+                await channel.send({ embeds: [confirmationEmbed(priceInCents, userId1, userId2)] });
 
                 await channel.send({ embeds: [nextStepEmbed(client)] });
             }

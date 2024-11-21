@@ -2,7 +2,7 @@ import { TextChannel } from "discord.js";
 
 export const deleteChannel = async (channel: TextChannel) => {
     try{
-        channel.send(`O canal será excluído em 5 segundos...`)
+        channel.send(`O canal será excluído em alguns segundos...`)
         await new Promise(resolve => setTimeout(resolve, 30000));
         await channel.delete();
     } catch(error){

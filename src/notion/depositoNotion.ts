@@ -9,6 +9,8 @@ export const saveDepositNotion = async (userId: string, valor: number) => {
     try {
         const databaseId = database_deposit_id;
 
+        const valorFormatado = (valor / 100).toFixed(2);
+
         if (!databaseId) {
         throw new Error('O ID do banco de dados do Notion não foi definido.');
         }
@@ -29,7 +31,7 @@ export const saveDepositNotion = async (userId: string, valor: number) => {
                 ],
             },
             'Valor': {
-                number: valor,
+                number: Number(valorFormatado),
             },
             'Data': {
                 date: {

@@ -30,7 +30,7 @@ export const setupClashRoyaleFormModalSubmit = async (client: Client, interactio
         { upsert: true },
       );
 
-      await interaction.reply({content: `Tag do Clash Royale ${clashTag} e Pix foi validada e salva com sucesso!`, ephemeral: true });
+      await interaction.reply({content: `Tag do Clash Royale ${clashTag} validada e salva com sucesso!`, ephemeral: true });
       const role = guild?.roles.cache.find(r => r.id === registeredRoleId);
 
       if (role && guild!=null) {

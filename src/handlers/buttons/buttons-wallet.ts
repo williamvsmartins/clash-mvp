@@ -1,13 +1,14 @@
 import { ActionRowBuilder, Client, Interaction, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import { getMoney } from "../../db/getMoneys";
-
+import config from '../../../config';
 
 export const buttonsWallet = async (client: Client, interaction: Interaction) => {
+    const { rate } = config;
 
     if(!interaction.isButton()) return;
 
     const saldo = await getMoney(interaction.user.id);
-    const saldoF = saldo.toFixed(2);
+    const saldoF = saldo / 100;
 
     if(interaction.customId === 'deposito'){
         const modal = new ModalBuilder()
@@ -16,7 +17,7 @@ export const buttonsWallet = async (client: Client, interaction: Interaction) =>
 
             const depositoInput = new TextInputBuilder()
             .setCustomId('depositoModal')
-            .setLabel("Valor do depósito (mínimo 1.10)")
+            .setLabel(`Valor do depósito (mínimo R$ ${((110 + rate) / 100).toFixed(2).replace('.', ',')})`)
             .setStyle(TextInputStyle.Short)
             .setRequired(true);
 
@@ -25,7 +26,7 @@ export const buttonsWallet = async (client: Client, interaction: Interaction) =>
             modal.addComponents(depositoRow);
             await interaction.showModal(modal);
     } else if(interaction.customId === 'saldo'){
-        await interaction.reply({ content: `Seu saldo atual é de ${saldoF} R$`, ephemeral: true })
+        await interaction.reply({ content: `Seu saldo atual é de R$ ${(saldo / 100).toFixed(2).replace('.', ',')}`, ephemeral: true })
     } else if(interaction.customId === 'sacar'){
         
         const modal = new ModalBuilder()
@@ -34,7 +35,7 @@ export const buttonsWallet = async (client: Client, interaction: Interaction) =>
 
             const depositoInput = new TextInputBuilder()
             .setCustomId('saqueModal')
-            .setLabel(`seu saldo atual é de ${saldoF} R$`)
+            .setLabel(`seu saldo atual é de R$ ${(saldo / 100).toFixed(2).replace('.', ',')}`)
             .setStyle(TextInputStyle.Short)
             .setRequired(true);
 

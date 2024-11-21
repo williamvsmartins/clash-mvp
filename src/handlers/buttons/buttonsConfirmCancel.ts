@@ -12,8 +12,10 @@ export const handleButtonsCon = async (client : Client, interaction: Interaction
 
     //  VERIFICAR O ERRO QUE ESTÁ DANDO AQUI AO TENTAR PEGAR O PRECO DO EMBED
     const priceString = interaction.message.embeds[0].data.fields![1].value; // pegando indefinido?
-    const cleanedPriceString = priceString.replace(/[^\d,.-]/g, '').replace(',', '.'); 
+    const cleanedPriceString = priceString.replace(/[^\d,.-]/g, '').replace(',', '.');
     const price = parseFloat(cleanedPriceString);
+    const priceInCents = Math.round(price * 100);
+            
 
     const rowDesable = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(
@@ -29,7 +31,7 @@ export const handleButtonsCon = async (client : Client, interaction: Interaction
                 .setDisabled(true)
         );
 
-        const rowEnable = new ActionRowBuilder<ButtonBuilder>()
+    const rowEnable = new ActionRowBuilder<ButtonBuilder>()
         .addComponents(
             new ButtonBuilder()
                 .setCustomId('Finalizar')
@@ -44,8 +46,8 @@ export const handleButtonsCon = async (client : Client, interaction: Interaction
         );
 
     if(interaction.customId === 'Finalizar'){
-        await interaction.update({ components: [rowDesable] });
-        const confirmMatch = await validMatch(userId1, userId2, channel, dateChannel ,price);
+        await interaction.deferReply({ ephemeral: true });
+        const confirmMatch = await validMatch(userId1, userId2, channel, dateChannel ,priceInCents);
         if(confirmMatch){
             deleteChannel(channel);
             try {
@@ -55,14 +57,16 @@ export const handleButtonsCon = async (client : Client, interaction: Interaction
                 console.error('Erro ao deletar documento:', error);
             }
         } else{
-            channel.send(`erro ao confirmar a partida`);
-            // await interaction.update({ components: [rowEnable] }) PROBLEMA AO REATIVAR A PARTIDA
+            await interaction.followUp({
+                content: "A partida ainda não ocorreu ou houve um erro ao confirmar. Tente novamente mais tarde.",
+                ephemeral: true,
+            });
         }
 
     } else if (interaction.customId === 'Cancelar') {
-        await interaction.update({ components: [rowDesable] });
+        await interaction.deferUpdate();
 
-        const confirmMatch = await validMatch(userId1, userId2, channel, dateChannel, price);
+        const confirmMatch = await validMatch(userId1, userId2, channel, dateChannel, priceInCents);
         if(!confirmMatch){
             await channel.send(`Aposta canelada e pagamentos estornados com sucesso`);
             deleteChannel(channel);

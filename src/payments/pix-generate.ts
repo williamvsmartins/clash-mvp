@@ -17,7 +17,7 @@ export const setupPixGenerate = async (client: Client, interaction: Interaction,
     const paymentResponse = await axios.post(
         'https://api.mercadopago.com/v1/payments',
         {
-          transaction_amount: amount,
+          transaction_amount: amount / 100,
           description: 'Pagamento via Pix',
           payment_method_id: 'pix',
           payer: {

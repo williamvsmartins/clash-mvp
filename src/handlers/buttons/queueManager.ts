@@ -23,7 +23,8 @@ export const setupQueueManager = async (client: Client, interaction: Interaction
 
       const priceString = interaction.message.embeds[0].data.fields![0].value;
       const cleanedPriceString = priceString.replace(/[^\d,.-]/g, '').replace(',', '.'); 
-      const price = parseFloat(cleanedPriceString);
+      const priceInReais = parseFloat(cleanedPriceString);
+      const priceInCents = Math.round(priceInReais * 100);
 
       const saldo = await getMoney(userId);
 
@@ -35,22 +36,22 @@ export const setupQueueManager = async (client: Client, interaction: Interaction
         queue = addToQueue(apostaId, userId);
         await interaction.deferUpdate();
 
-        if (price > saldo) {
+        if (priceInCents > saldo) {
           removeFromQueue(apostaId, userId);
-          await interaction.followUp({ content: `Saldo insuficiente para esta aposta, seu saldo atual é de: ${saldo.toFixed(2)}`, ephemeral: true });
+          await interaction.followUp({ content: `Saldo insuficiente para esta aposta, seu saldo atual é de:  ${(saldo / 100).toFixed(2).replace('.', ',')}`, ephemeral: true });
           return;
         }
 
         await updateQueueEmbed(channelId, messageId, apostaId, client);
       } else {
-          if(saldo > price){
+          if(saldo > priceInCents){
             await interaction.deferUpdate();
             const [user1] = queue;
             const user2 = userId;
-            await createChannelForUsers(client, interaction.guild!, channelId, messageId, apostaId, user1, user2, price);
+            await createChannelForUsers(client, interaction.guild!, channelId, messageId, apostaId, user1, user2, priceInCents);
         } else{
           await interaction.deferUpdate();
-          await interaction.followUp({ content: `Saldo insuficiente para esta aposta, seu saldo atual é de: ${saldo.toFixed(2)}`, ephemeral: true });
+          await interaction.followUp({ content: `Saldo insuficiente para esta aposta, seu saldo atual é de:  ${(saldo / 100).toFixed(2).replace('.', ',')}`, ephemeral: true });
           return;
         }
       }

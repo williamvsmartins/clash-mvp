@@ -11,7 +11,7 @@ const config = {
   database_id: process.env.DATABASE_ID || '',
   suportroleid: process.env.SUPOSUPORTE_ROLE_ID || '',
   database_deposit_id: process.env.DATABASE_DEPOSIT_ID || '',
-  rate: process.env.RATE || 0
+  rate: Number(process.env.RATE || 0)
 };
 
 export default config;
