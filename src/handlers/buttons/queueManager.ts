@@ -44,7 +44,7 @@ export const setupQueueManager = async (client: Client, interaction: Interaction
 
         await updateQueueEmbed(channelId, messageId, apostaId, client);
       } else {
-          if(saldo > priceInCents){
+          if(saldo >= priceInCents){
             await interaction.deferUpdate();
             const [user1] = queue;
             const user2 = userId;
