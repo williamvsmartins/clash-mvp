@@ -17,7 +17,7 @@ export const buttonsWallet = async (client: Client, interaction: Interaction) =>
 
             const depositoInput = new TextInputBuilder()
             .setCustomId('depositoModal')
-            .setLabel(`Valor do depósito (mínimo R$ ${((110 + rate) / 100).toFixed(2).replace('.', ',')})`)
+            .setLabel(`Valor do depósito (mínimo R$ ${((100 + rate) / 100).toFixed(2).replace('.', ',')})`)
             .setStyle(TextInputStyle.Short)
             .setRequired(true);
 
