@@ -48,7 +48,7 @@ export const setupFixedMessageQueue = async (client: Client, interaction: Intera
     .setTitle('1v1 Clássico | Fila de Competição')
     .setDescription(`Formato\n1v1 Clássico\n\n`)
     .addFields([
-      { name: 'Valor', value: currencyFormatter.format(value) },
+      { name: 'Valor', value: currencyFormatter.format(value + (rate / 100)) },
       { name: 'Jogadores', value: 'Nenhum jogador na fila \n\n', inline: false },
     ])
     .setThumbnail('https://cdn.discordapp.com/attachments/1276274460449575021/1276275081722593359/clashBet.jpg?ex=66c8ef4b&is=66c79dcb&hm=1fdd0951cc8461bb6585478dea0badaace2e018428cbe1fe761edc3c70271cb2&')
