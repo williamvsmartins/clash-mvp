@@ -31,7 +31,17 @@ const match = new mongoose.Schema({
   date: {type:String, require:true},
 })
 
+const transactionSchema = new mongoose.Schema({
+  userId: { type: String, required: true }, // Referência ao usuário
+  type: { type: String, required: true }, // Tipo de transação: 'saque', 'deposito', 'partida'
+  amount: { type: Number, required: true }, // Valor da transação
+  description: { type: String, required: true }, // Descrição do gasto ou motivo
+  date: { type: Date, default: Date.now }, // Data e hora da transação
+});
+
+
 export const Guild = mongoose.model('Guild', guildSchema);
 export const User = mongoose.model('User', userSchema);
 export const Confirmation = mongoose.model('Confirmations', confrmationsSchema);
 export const Match = mongoose.model('Match', match)
+export const Transaction = mongoose.model('Transaction', transactionSchema);
