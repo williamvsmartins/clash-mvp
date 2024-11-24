@@ -2,7 +2,7 @@ import { Command } from "#base";
 import { reply } from "#functions";
 import { limitText } from "@magicyan/discord";
 import { ApplicationCommandType, ApplicationCommandOptionType, ChannelType, codeBlock } from "discord.js";
-import { queueMenu } from "functions/menus/queue.js";
+import { betMenu } from "functions/menus/queue.js";
 
 new Command({
   name: "fila",
@@ -42,8 +42,8 @@ new Command({
     const amountReceive = limitText(options.getString("valor_receber", true), 10);
   
     try {
-      const {embed, row } = queueMenu(amountPay, amountReceive);
-      const message = await channel.send({ embeds: [embed], components: [row] });
+      const { embeds, components } = betMenu(amountPay, amountReceive);
+      const message = await channel.send({ embeds, components });
 
       reply.success({
         interaction,
