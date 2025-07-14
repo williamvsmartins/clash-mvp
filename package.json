@@ -17,10 +17,11 @@
     "chalk": "^5.3.0",
     "consola": "^3.2.3",
     "discord.js": "^14.16.3",
+    "dotenv": "^17.2.0",
     "fast-glob": "^3.3.2",
+    "mongoose": "^8.3.1",
     "radix3": "^1.1.2",
-    "zod": "^3.23.8",
-    "mongoose": "^8.3.1"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/node": "^20.16.11",
