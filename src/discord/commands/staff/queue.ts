@@ -27,9 +27,11 @@ new Command({
     required
   }],
   async run(interaction) {
-    const { guild, member, options } = interaction;
+    const { member, options } = interaction;
 
-    if (member.id !== guild.ownerId){
+    console.log(member.flags);
+    // '1270743659289247755'
+    if (member.flags.equals('1270743659289247755') ){
       reply.danger({ interaction,
           text: "Apenas o proprietário do servidor pode utilizar este comando!"
       });
