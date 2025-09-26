@@ -1,14 +1,15 @@
 import { Command } from "#base";
 import { reply } from "#functions";
 import { limitText } from "@magicyan/discord";
-import { ApplicationCommandType, ApplicationCommandOptionType, ChannelType, codeBlock } from "discord.js";
-import { betMenu } from "functions/menus/queue.js";
+import { ApplicationCommandType, ApplicationCommandOptionType, ChannelType, codeBlock, PermissionFlagsBits } from "discord.js";
+import { betMenu } from "#functions";
 
 new Command({
   name: "fila",
   description: "Cria nova fila de apostas",
   type: ApplicationCommandType.ChatInput,
-  options:[{
+  defaultMemberPermissions: [PermissionFlagsBits.Administrator],
+  options: [{
     name: 'valor_pagar',
     description: 'Valor em reais para entrar na fila',
     type: ApplicationCommandOptionType.String,
@@ -29,20 +30,20 @@ new Command({
   async run(interaction) {
     const { member, options } = interaction;
 
-    console.log(member.flags);
-    // '1270743659289247755'
-    if (member.flags.equals('1270743659289247755') ){
-      reply.danger({ interaction,
-          text: "Apenas o proprietário do servidor pode utilizar este comando!"
+    // Verificar se o usuário tem permissão de administrador
+    if (!member.permissions.has(PermissionFlagsBits.Administrator)) {
+      reply.danger({
+        interaction,
+        text: "Apenas administradores podem utilizar este comando!"
       });
       return;
     }
-  
+
     const channel = options.getChannel("canal", true, [ChannelType.GuildText]);
 
     const amountPay = limitText(options.getString("valor_pagar", true), 10);
     const amountReceive = limitText(options.getString("valor_receber", true), 10);
-  
+
     try {
       const { embeds, components } = betMenu(amountPay, amountReceive);
       const message = await channel.send({ embeds, components });

@@ -1,6 +1,5 @@
 import { Responder, ResponderType } from "#base";
-import { reply } from "#functions";
-import { betMenu } from "functions/menus/queue.js";
+import { reply, betMenu } from "#functions";
 
 new Responder({
   customId: "bet/queue/enter_bet",
@@ -23,13 +22,20 @@ new Responder({
 
     members.push(memberId);
 
-    if (members.length > 1) {
+    if (members.length >= 2) {
       reply.success({
         interaction,
-        text: "Criando chat!"
+        text: "🎉 Dois jogadores na fila! Criando chat privado para a partida!"
       });
 
+      // Aqui você pode adicionar lógica para criar um canal privado
+      // ou enviar mensagem para os jogadores
       members = [];
+    } else {
+      reply.success({
+        interaction,
+        text: "Você foi adicionado à fila! Aguardando outro jogador..."
+      });
     }
 
     const [amountPay, amountReceive] = message.embeds[0].fields[0].value.split(" / ").map(v => v.trim().replace("R$ ", ""));
