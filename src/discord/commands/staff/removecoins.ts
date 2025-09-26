@@ -3,6 +3,7 @@ import { reply } from "#functions";
 import { createEmbed, createEmbedAuthor } from "@magicyan/discord";
 import { ApplicationCommandType, ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { db } from "#database";
+import { settings } from "#settings";
 
 new Command({
     name: "remover_moedas",
@@ -65,7 +66,7 @@ new Command({
 
             const embed = createEmbed({
                 author: createEmbedAuthor(targetUser),
-                color: "Danger",
+                color: settings.colors.success,
                 title: "💰 Moedas Removidas",
                 description: `**Usuário:** ${targetUser}\n**Quantidade:** -${amount} moedas\n**Saldo anterior:** ${oldBalance}\n**Novo saldo:** ${memberData.wallet?.coins || 0}\n**Motivo:** ${reason}`,
                 thumbnail: { url: targetUser.displayAvatarURL() },

@@ -3,6 +3,7 @@ import { reply } from "#functions";
 import { createEmbed, createEmbedAuthor } from "@magicyan/discord";
 import { ApplicationCommandType, ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { db } from "#database";
+import { settings } from "#settings";
 
 new Command({
     name: "adicionar_moedas",
@@ -60,21 +61,21 @@ new Command({
 
             const embed = createEmbed({
                 author: createEmbedAuthor(targetUser),
-                color: "Success",
+                color: settings.colors.success,
                 title: "💰 Moedas Adicionadas",
                 description: `**Usuário:** ${targetUser}\n**Quantidade:** +${amount} moedas\n**Saldo anterior:** ${oldBalance}\n**Novo saldo:** ${memberData.wallet?.coins || 0}\n**Motivo:** ${reason}`,
                 thumbnail: { url: targetUser.displayAvatarURL() },
                 footer: { text: "Clash Bet" }
             });
 
-            reply.success({
-                interaction,
-                embeds: [embed]
+            await interaction.reply({
+                embeds: [embed],
+                ephemeral: true // Mantém a resposta visível apenas para o admin
             });
         } catch (error) {
             reply.danger({
                 interaction,
-                text: "Erro ao adicionar moedas. Tente novamente mais tarde."
+                text: `erro: ${error}`
             });
         }
     }

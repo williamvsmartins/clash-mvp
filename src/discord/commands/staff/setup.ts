@@ -3,6 +3,7 @@ import { reply } from "#functions";
 import { createEmbed } from "@magicyan/discord";
 import { ApplicationCommandType, ApplicationCommandOptionType, PermissionFlagsBits, ChannelType } from "discord.js";
 import { db } from "#database";
+import { settings } from "#settings";
 
 new Command({
     name: "configurar",
@@ -43,22 +44,26 @@ new Command({
                 guildData.channels = guildData.channels || {};
                 guildData.channels.logs = {
                     id: logsChannel.id,
-                    name: logsChannel.name
+                    url: logsChannel.url
                 };
             }
 
             if (generalChannel) {
+                if (generalChannel.type !== ChannelType.GuildText) {
+                    reply.danger({ interaction, text: "O canal geral deve ser um canal de texto." });
+                    return;
+                }
                 guildData.channels = guildData.channels || {};
                 guildData.channels.general = {
                     id: generalChannel.id,
-                    name: generalChannel.name
+                    url: generalChannel.url
                 };
             }
 
             await guildData.save();
 
             const embed = createEmbed({
-                color: "Success",
+                color: settings.colors.success,
                 title: "⚙️ Configuração Atualizada",
                 description: "As configurações do servidor foram atualizadas com sucesso!",
                 fields: [
@@ -76,9 +81,9 @@ new Command({
                 footer: { text: "Clash Bet" }
             });
 
-            reply.success({
-                interaction,
-                embeds: [embed]
+            await interaction.reply({
+                embeds: [embed],
+                ephemeral: true
             });
         } catch (error) {
             reply.danger({

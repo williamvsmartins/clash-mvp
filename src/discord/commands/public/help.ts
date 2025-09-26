@@ -1,5 +1,6 @@
 import { Command } from "#base";
 import { reply } from "#functions";
+import { settings } from "#settings";
 import { createEmbed, createEmbedAuthor } from "@magicyan/discord";
 import { ApplicationCommandType, ApplicationCommandOptionType } from "discord.js";
 
@@ -25,7 +26,7 @@ new Command({
 
         const embed = createEmbed({
             author: createEmbedAuthor(interaction.client.user),
-            color: "Primary",
+            color: settings.colors.success,
             title: "🤖 Clash Bet - Comandos Disponíveis",
             thumbnail: { url: interaction.client.user.displayAvatarURL() }
         });

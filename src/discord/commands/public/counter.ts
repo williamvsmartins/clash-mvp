@@ -1,4 +1,5 @@
 import { Command, Responder, ResponderType } from "#base";
+import { settings } from "#settings";
 import { createEmbed, createEmbedAuthor, createRow } from "@magicyan/discord";
 import { ApplicationCommandType, ButtonBuilder, ButtonStyle, InteractionReplyOptions, User } from "discord.js";
 
@@ -23,7 +24,7 @@ new Responder({
 function counterMenu(user: User, current: number) {    
     const embed = createEmbed({
         author: createEmbedAuthor(user),
-        color: "Random",
+        color: settings.colors.warning,
         description: `Current value: ${current}`
     });
     const components = [

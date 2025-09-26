@@ -84,7 +84,7 @@ new Command({
                     text: `${clearedCount} fila(s) limpa(s) com sucesso em ${channel}!`
                 });
             } else {
-                reply.info({
+                reply.primary({
                     interaction,
                     text: "Nenhuma fila de apostas encontrada neste canal."
                 });

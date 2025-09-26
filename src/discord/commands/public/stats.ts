@@ -3,6 +3,7 @@ import { reply } from "#functions";
 import { createEmbed, createEmbedAuthor } from "@magicyan/discord";
 import { ApplicationCommandType } from "discord.js";
 import { db } from "#database";
+import { settings } from "#settings";
 
 new Command({
     name: "estatisticas",
@@ -61,9 +62,9 @@ new Command({
 
             const embed = createEmbed({
                 author: createEmbedAuthor(client.user),
-                color: "Primary",
+                color: settings.colors.success,
                 title: "📊 Estatísticas do Servidor",
-                thumbnail: { url: guild.iconURL() || undefined },
+                thumbnail: { url: guild.iconURL() || '' },
                 fields: [
                     {
                         name: "👥 Membros",

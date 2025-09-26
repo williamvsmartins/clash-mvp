@@ -1,5 +1,6 @@
 import { Command } from "#base";
 import { reply } from "#functions";
+import { settings } from "#settings";
 import { createEmbed } from "@magicyan/discord";
 import { ApplicationCommandType, ChannelType } from "discord.js";
 
@@ -60,15 +61,16 @@ new Command({
             }
 
             if (activeQueues.length === 0) {
-                reply.info({
+                reply.primary({
                     interaction,
-                    text: "Não há filas de apostas ativas no momento."
+                    text: "Não há filas de apostas ativas no momento.",
+                    update: true // Usar update pois a resposta foi deferida
                 });
                 return;
             }
 
             const embed = createEmbed({
-                color: "Primary",
+                color: settings.colors.success,
                 title: "🎮 Filas de Apostas Ativas",
                 description: `Encontradas ${activeQueues.length} fila(s) ativa(s):`,
                 fields: activeQueues.map((queue, index) => ({

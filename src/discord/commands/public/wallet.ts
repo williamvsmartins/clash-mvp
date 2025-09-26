@@ -3,6 +3,7 @@ import { reply } from "#functions";
 import { createEmbed, createEmbedAuthor } from "@magicyan/discord";
 import { ApplicationCommandType, ApplicationCommandOptionType } from "discord.js";
 import { db } from "#database";
+import { settings } from "#settings";
 
 new Command({
     name: "carteira",
@@ -35,7 +36,7 @@ new Command({
 
             const embed = createEmbed({
                 author: createEmbedAuthor(targetUser),
-                color: "Primary",
+                color: settings.colors.success,
                 title: "💰 Carteira",
                 description: `**Saldo atual:** ${memberData.wallet?.coins || 0} moedas`,
                 thumbnail: { url: targetUser.displayAvatarURL() },

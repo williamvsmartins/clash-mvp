@@ -4,7 +4,8 @@ import { AutocompleteInteraction, EmbedBuilder, EmbedData, Guild, Interaction, U
 
 interface ReplyOptions {
     interaction: Exclude<Interaction, AutocompleteInteraction>,
-    text: string;
+    text?: string;
+    embeds?: (EmbedBuilder | EmbedData)[];
     ephemeral?: boolean;
     update?: boolean;
     clear?: boolean;
@@ -15,69 +16,88 @@ interface EmbedReplyOptions extends ReplyOptions {
     color: string
     embed?: EmbedData
 }
-export function embedReply({ interaction, text, ...options }: EmbedReplyOptions){
-    const { ephemeral=true, update=false, color, embed: data, clear, content } = options;
 
-    const embed = new EmbedBuilder({
-        color: hexToRgb(color),
-        description: text, 
-        ...data
-    });
+export function embedReply({ interaction, text, embeds: providedEmbeds, ...options }: EmbedReplyOptions){
+    const { ephemeral = true, update = false, color, embed: data, clear, content } = options;
+
+    let embeds: EmbedBuilder[];
+
+    if (providedEmbeds) {
+        // Se embeds foram fornecidos, garanta que todos sejam EmbedBuilders
+        embeds = providedEmbeds.map(e => e instanceof EmbedBuilder ? e : new EmbedBuilder(e));
+    } else {
+        // Se não, crie um novo embed a partir do texto
+        embeds = [
+            new EmbedBuilder({
+                color: hexToRgb(color),
+                description: text,
+                ...data
+            })
+        ];
+    }
 
     const components = clear ? [] : undefined;
+    const replyOptions = { content, embeds, components, ephemeral };
+    const updateOptions = { content, embeds, components };
 
     if (update){
         if (interaction.isMessageComponent()){
-            interaction.update({ content, embeds: [embed], components });
+            interaction.update(updateOptions);
             return;
         }
-        interaction.editReply({ content, embeds: [embed], components });
-        return;
+        if (interaction.deferred || interaction.replied) {
+            interaction.editReply(updateOptions);
+            return;
+        }
     }
-
-    interaction.reply({ ephemeral, embeds: [embed], content });
+    
+    // Assegurando que a interação pode receber uma resposta
+    if (!interaction.replied){
+        interaction.reply(replyOptions);
+    }
 }
 
+// O resto do seu código permanece o mesmo
 export const reply = {
     success(options: ReplyOptions){
-        embedReply({ 
-            color: settings.colors.success, 
-            clear: true, ...options, 
+        embedReply({
+            color: settings.colors.success,
+            clear: true, ...options,
         });
     },
     danger(options: ReplyOptions){
-        embedReply({ 
-            color: settings.colors.danger, 
+        embedReply({
+            color: settings.colors.danger,
             clear: true, ...options,
         });
     },
     primary(options: ReplyOptions){
-        embedReply({ 
-            color: settings.colors.primary, 
-            clear: true, ...options, 
+        embedReply({
+            color: settings.colors.primary,
+            clear: true, ...options,
         });
     },
     server({ guild, ...options}: ReplyOptions & { guild: Guild }){
-        embedReply({ 
+        embedReply({
             color: settings.colors.primary,
             clear: true,
-            embed: { 
-                footer: { 
+            embed: {
+                footer: {
                     text: guild.name,
                     iconURL: guild.iconURL() ?? undefined
                 }
             },
-            ...options, 
+            ...options,
         });
     },
     user({ user, ...options}: ReplyOptions & { user: User }){
-        embedReply({ 
+        embedReply({
             color: settings.colors.primary,
             clear: true,
-            embed: { 
+            embed: {
                 author: createEmbedAuthor(user)
             },
-            ...options, 
+            ...options,
         });
     }
 };

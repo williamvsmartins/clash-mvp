@@ -1,8 +1,9 @@
 import { Responder, ResponderType } from "#base";
 import { reply } from "#functions";
-import { createEmbed, createEmbedAuthor, createRow } from "@magicyan/discord";
-import { ButtonBuilder, ButtonStyle, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from "discord.js";
+import { createEmbed, createEmbedAuthor } from "@magicyan/discord";
+import { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from "discord.js";
 import { db } from "#database";
+import { settings } from "#settings";
 
 // Responder para iniciar processo de pagamento
 new Responder({
@@ -92,18 +93,21 @@ new Responder({
 
             const embed = createEmbed({
                 author: createEmbedAuthor(interaction.user),
-                color: "Success",
+                color: settings.colors.success,
                 title: "✅ Pagamento Processado",
                 description: `**Valor pago:** ${paymentAmount} moedas\n**Saldo restante:** ${memberData.wallet?.coins || 0} moedas\n\nVocê foi adicionado à fila de apostas!`,
                 thumbnail: { url: interaction.user.displayAvatarURL() },
                 footer: { text: "Clash Bet" }
             });
 
-            reply.success({
-                interaction,
-                embeds: [embed]
+
+            await interaction.reply({
+                embeds: [embed],
+                ephemeral: true
             });
+
         } catch (error) {
+            console.error("Erro no pagamento:", error);
             reply.danger({
                 interaction,
                 text: "Erro ao processar pagamento. Tente novamente mais tarde."
