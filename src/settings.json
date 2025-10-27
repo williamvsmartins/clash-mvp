@@ -1,0 +1,15 @@
+{
+  "colors": {
+    "primary": "#5865F2",
+    "bravery": "#9B59B6",
+    "success": "#57F287",
+    "warning": "#FEE75C",
+    "danger": "#ED4245"
+  },
+  "emojis": {
+    "success": "✅",
+    "error": "❌",
+    "warning": "⚠️",
+    "loading": "⏳"
+  }
+}
