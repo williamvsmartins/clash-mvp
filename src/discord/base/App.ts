@@ -38,7 +38,7 @@ export async function bootstrapApp<O extends BootstrapAppOptions>(options: O): P
             onNotFound: options.responders.onNotFound
         });
     }
-    const client = createClient(process.env.BOT_TOKEN, options);
+    const client = createClient(process.env.BOT_TOKEN!, options);
     await loadDirectories(options);
     
     console.log();
