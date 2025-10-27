@@ -1,19 +1,8 @@
-import { Schema } from "mongoose";
-import { t } from "../utils.js";
+import mongoose from 'mongoose';
 
-export const guildSchema = new Schema(
-    {
-        id: t.string,
-        channels: {
-            logs: t.channelInfo,
-            general: t.channelInfo,
-        }
-    },
-    {
-        statics: {
-            async get(id: string) {
-                return await this.findOne({ id }) ?? this.create({ id });
-            }
-        }
-    }
-);
+const guildSchema = new mongoose.Schema({
+    guildId: { type: String, required: true, unique: true },
+    fixedMessageId: String,
+});
+
+export const Guild = mongoose.model('Guild', guildSchema);
