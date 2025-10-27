@@ -1,61 +1,89 @@
-import { Command } from "#base";
-import { reply } from "#functions";
-import { limitText } from "@magicyan/discord";
-import { ApplicationCommandType, ApplicationCommandOptionType, ChannelType, codeBlock } from "discord.js";
-import { betMenu } from "functions/menus/queue.js";
+import { ApplicationCommandType, ChannelType, EmbedBuilder } from 'discord.js';
+import { Command } from '#base';
+import { env } from '#settings';
 
 new Command({
-  name: "fila",
-  description: "Cria nova fila de apostas",
+  name: 'fila',
+  description: 'Cria nova fila de apostas',
   type: ApplicationCommandType.ChatInput,
-  options:[{
-    name: 'valor_pagar',
-    description: 'Valor em reais para entrar na fila',
-    type: ApplicationCommandOptionType.String,
-    required
-  },
-  {
-    name: "valor_receber",
-    description: "Valor em reais a ser recebido",
-    type: ApplicationCommandOptionType.String,
-    required
-  },
-  {
-    name: 'canal',
-    description: 'O ID do canal onde a mensagem será enviada',
-    type: ApplicationCommandOptionType.Channel,
-    required
-  }],
+  options: [
+    {
+      name: 'valor',
+      description: 'Valor em reais para a fila',
+      type: 4,
+      required: true
+    },
+    {
+      name: 'canal',
+      description: 'O canal onde a mensagem será enviada',
+      type: 7,
+      required: true
+    }
+  ],
   async run(interaction) {
-    const { member, options } = interaction;
+    const valor = interaction.options.getInteger('valor', true);
+    const channelOption = interaction.options.getChannel('canal', true);
 
-    console.log(member.flags);
-    // '1270743659289247755'
-    if (member.flags.equals('1270743659289247755') ){
-      reply.danger({ interaction,
-          text: "Apenas o proprietário do servidor pode utilizar este comando!"
+    if (channelOption.type !== ChannelType.GuildText) {
+      await interaction.reply({
+        content: 'Por favor, selecione um canal de texto!',
+        ephemeral: true
       });
       return;
     }
-  
-    const channel = options.getChannel("canal", true, [ChannelType.GuildText]);
 
-    const amountPay = limitText(options.getString("valor_pagar", true), 10);
-    const amountReceive = limitText(options.getString("valor_receber", true), 10);
-  
-    try {
-      const { embeds, components } = betMenu(amountPay, amountReceive);
-      const message = await channel.send({ embeds, components });
-
-      reply.success({
-        interaction,
-        text: `Mensagem enviada com sucesso! ${message.url}`,
+    const channel = await interaction.guild!.channels.fetch(channelOption.id);
+    if (!channel || !channel.isTextBased()) {
+      await interaction.reply({
+        content: 'Canal inválido!',
+        ephemeral: true
       });
-    } catch (err) {
-      reply.danger({
-        interaction,
-        text: `Não foi possível enviar a mensagem ${codeBlock("bash", err as string)}`,
-      });
+      return;
     }
+
+    const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL',
+      minimumFractionDigits: 2,
+    });
+
+    const embed = new EmbedBuilder()
+      .setColor('#0099ff')
+      .setTitle('1v1 Clássico | Fila de Competição')
+      .setDescription(`Formato\n1v1 Clássico\n\n`)
+      .addFields([
+        { name: 'Valor', value: currencyFormatter.format(valor + (env.RATE / 100)) },
+        { name: 'Jogadores', value: 'Nenhum jogador na fila \n\n', inline: false },
+      ])
+      .setThumbnail('https://cdn.discordapp.com/attachments/1276274460449575021/1276275081722593359/clashBet.jpg')
+      .setFooter({ text: 'Clash Apostas' });
+
+    await channel.send({
+      embeds: [embed],
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              type: 2,
+              style: 1,
+              label: 'Entrar na Fila',
+              customId: 'enter_queue'
+            },
+            {
+              type: 2,
+              style: 4,
+              label: 'Sair da Fila',
+              customId: 'leave_queue'
+            }
+          ]
+        }
+      ]
+    });
+
+    await interaction.reply({
+      content: 'Fila enviada com sucesso!',
+      ephemeral: true
+    });
   }
 });
