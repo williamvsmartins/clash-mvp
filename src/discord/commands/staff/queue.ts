@@ -47,16 +47,26 @@ new Command({
       minimumFractionDigits: 2,
     });
 
+    const amountPay = valor + (env.RATE / 100);
+    const amountReceive = valor * 2;
+
     const embed = new EmbedBuilder()
       .setColor('#0099ff')
       .setTitle('1v1 Clássico | Fila de Competição')
       .setDescription(`Formato\n1v1 Clássico\n\n`)
       .addFields([
-        { name: 'Valor', value: currencyFormatter.format(valor + (env.RATE / 100)) },
-        { name: 'Jogadores', value: 'Nenhum jogador na fila \n\n', inline: false },
+        {
+          name: 'Valor',
+          value: `${currencyFormatter.format(amountPay)} / ${currencyFormatter.format(amountReceive)}`
+        },
+        {
+          name: 'Jogadores',
+          value: 'Nenhum jogador na fila \n\n',
+          inline: false
+        },
       ])
       .setThumbnail('https://cdn.discordapp.com/attachments/1276274460449575021/1276275081722593359/clashBet.jpg')
-      .setFooter({ text: 'Clash Apostas' });
+      .setFooter({ text: 'ClashBet' });
 
     await channel.send({
       embeds: [embed],
@@ -68,13 +78,13 @@ new Command({
               type: 2,
               style: 1,
               label: 'Entrar na Fila',
-              customId: 'enter_queue'
+              customId: 'bet/queue/enter_bet'
             },
             {
               type: 2,
               style: 4,
               label: 'Sair da Fila',
-              customId: 'leave_queue'
+              customId: 'bet/queue/leave_bet'
             }
           ]
         }
