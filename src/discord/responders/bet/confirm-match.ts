@@ -1,7 +1,7 @@
 import { Responder, ResponderType } from "#base";
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, TextChannel } from "discord.js";
 import { Confirmation } from "#database";
-import { descontoPartida } from "#functions";
+import { descontoPartida, createActiveMatch } from "#functions";
 import { matchData } from "./queue.js";
 
 const confirmations = new Map<string, Set<string>>();
@@ -117,6 +117,23 @@ new Responder({
                         `⚔️ **Que comece a batalha!**\n\n` +
                         `Envie o link de amizade abaixo para iniciar a partida.`
                 });
+
+                // Cria registro da partida ativa para verificação automática
+                try {
+                    await createActiveMatch({
+                        channelId,
+                        player1UserId: user1,
+                        player2UserId: user2,
+                        price: priceInCents,
+                        autoVerificationEnabled: true, // Habilita verificação automática
+                        timeoutMinutes: 30
+                    });
+                    
+                    console.log(`✅ Partida ativa criada para canal ${channelId}`);
+                } catch (error) {
+                    console.error('Erro ao criar partida ativa:', error);
+                    // Não falha a confirmação se der erro aqui
+                }
 
                 confirmations.delete(channelId);
                 matchData.delete(channelId);

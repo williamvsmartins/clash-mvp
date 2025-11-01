@@ -80,3 +80,22 @@ export const descontoPartida = async (userId1: string, userId2: string, valor: n
         console.log('Erro ao aplicar desconto:', error);
     }
 };
+
+export const premio = async (userId: string, valor: number) => {
+    try {
+        const user = await User.findOne({ userId });
+        if (user) {
+            user.moedas += valor;
+            await user.save();
+
+            await Transaction.create({
+                userId: userId,
+                type: 'premio',
+                amount: valor,
+                description: 'Prêmio de partida vencida',
+            });
+        }
+    } catch (error) {
+        console.log('Erro ao conceder prêmio:', error);
+    }
+};
