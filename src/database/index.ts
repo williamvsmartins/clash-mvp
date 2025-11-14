@@ -17,3 +17,4 @@ export * from './schemas/confirmations.js';
 export * from './schemas/match.js';
 export * from './schemas/Transaction.js';
 export * from './schemas/activeMatch.js';
+export * from './schemas/pixPayment.js';
