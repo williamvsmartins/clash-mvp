@@ -1,7 +1,9 @@
 import { Responder, ResponderType } from '#base';
-import { deposito, saque, getMoney } from '#functions';
+import { saque, getMoney, criarPagamentoPix } from '#functions';
 import { gerarCodigoPix, saveDepositNotion } from '#functions';
+import { PixPayment } from '#database';
 import { env } from '#settings';
+import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 
 new Responder({
     customId: 'deposito_modal',
@@ -22,7 +24,7 @@ new Responder({
         const valorReais = parseFloat(valorInput.replace(",", "."));
         const valorCentavos = Math.round(valorReais * 100);
 
-        if (valorCentavos < 100 + env.RATE) {
+        if (valorCentavos <= 100 + env.RATE) {
             await interaction.reply({
                 content: `O valor deve ser maior ou igual a R$ ${((100 + env.RATE) / 100).toFixed(2)}.`,
                 ephemeral: true,
@@ -31,16 +33,75 @@ new Responder({
         }
 
         await interaction.deferReply({ ephemeral: true });
+        console.log(interaction.user.username)
 
-        // Aqui você implementaria a lógica de pagamento com Mercado Pago
-        // Por enquanto, vou simular sucesso
-        await deposito(interaction.user.id, valorCentavos);
-        await saveDepositNotion(interaction.user.id, valorCentavos);
+        try {
+            const pixPayment = await criarPagamentoPix(
+                valorCentavos,
+                interaction.user.username,
+                interaction.user.id,
+                `Depósito de R$ ${valorReais.toFixed(2)} - ${interaction.user.username}`
+            );
 
-        await interaction.followUp({
-            content: "Depósito confirmado com sucesso! Seu saldo foi atualizado.",
-            ephemeral: true,
-        });
+            await PixPayment.create({
+                userId: interaction.user.id,
+                mercadoPagoId: pixPayment.id,
+                valor: valorCentavos,
+                status: 'pending',
+                qrCode: pixPayment.qrCode,
+                qrCodeBase64: pixPayment.qrCodeBase64,
+            });
+
+            const qrCodeBuffer = Buffer.from(pixPayment.qrCodeBase64, 'base64');
+            const qrCodeAttachment = new AttachmentBuilder(qrCodeBuffer, { name: 'qrcode.png' });
+
+            const embed = new EmbedBuilder()
+                .setTitle('💰 Pagamento PIX Gerado')
+                .setDescription('Escaneie o QR Code ou copie o código PIX abaixo para realizar o pagamento.')
+                .addFields(
+                    { name: '💵 Valor', value: `R$ ${valorReais.toFixed(2).replace('.', ',')}`, inline: true },
+                    { name: '🆔 ID do Pagamento', value: `#${pixPayment.id}`, inline: true },
+                    { name: '⏰ Validade', value: '15 minutos', inline: true },
+                    { name: '📋 PIX Copia e Cola', value: `\`\`\`${pixPayment.qrCode}\`\`\``, inline: false }
+                )
+                .setColor('#00b4d8')
+                .setImage('attachment://qrcode.png')
+                .setFooter({ text: 'O pagamento será confirmado automaticamente após a aprovação.' })
+                .setTimestamp();
+
+            try {
+                await interaction.user.send({
+                    embeds: [embed],
+                    files: [qrCodeAttachment],
+                });
+
+                await interaction.followUp({
+                    content: '✅ QR Code enviado no seu privado! Verifique suas mensagens diretas.',
+                    ephemeral: true,
+                });
+            } catch (dmError) {
+                console.error('Não foi possível enviar DM:', dmError);
+
+                const qrCodeBuffer2 = Buffer.from(pixPayment.qrCodeBase64, 'base64');
+                const qrCodeAttachment2 = new AttachmentBuilder(qrCodeBuffer2, { name: 'qrcode.png' });
+
+                await interaction.followUp({
+                    content: '⚠️ Não foi possível enviar no privado. Aqui está seu QR Code (esta mensagem é visível apenas para você):',
+                    embeds: [embed],
+                    files: [qrCodeAttachment2],
+                    ephemeral: true,
+                });
+            }
+
+            await saveDepositNotion(interaction.user.id, valorCentavos);
+
+        } catch (error) {
+            console.error('Erro ao gerar pagamento PIX:', error);
+            await interaction.followUp({
+                content: '❌ Erro ao gerar o pagamento PIX. Tente novamente mais tarde ou entre em contato com o suporte.',
+                ephemeral: true,
+            });
+        }
     }
 });
 
