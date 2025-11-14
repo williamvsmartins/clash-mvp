@@ -62,7 +62,7 @@ export const createActiveMatch = async (data: {
 export const checkMatchResult = async (channelId: string) => {
     try {
         const activeMatch = await ActiveMatch.findOne({ channelId });
-        
+
         if (!activeMatch) {
             return { success: false, error: 'Partida não encontrada' };
         }
@@ -85,17 +85,41 @@ export const checkMatchResult = async (channelId: string) => {
 
         const result = await verifyMatch(verificationData);
 
-        if (result.success && result.winner) {
-            // Partida verificada com sucesso
+        if (result.success) {
+            // Verifica se houve empate
+            if (result.winner === null) {
+                // EMPATE - Reembolsa ambos os jogadores
+                activeMatch.status = 'draw';
+                await activeMatch.save();
+
+                return {
+                    success: true,
+                    winner: null,
+                    winnerUserId: null,
+                    isDraw: true,
+                    result: result.result,
+                    player1UserId: activeMatch.player1UserId,
+                    player2UserId: activeMatch.player2UserId,
+                    price: activeMatch.price,
+                    validation: {
+                        appliedRule: 'EMPATE',
+                        details: `Partida empatada: ${result.result?.player1.crowns} x ${result.result?.player2.crowns}`
+                    }
+                };
+            }
+
+            // PARTIDA COM VENCEDOR
             activeMatch.status = 'finished';
             await activeMatch.save();
 
             return {
                 success: true,
                 winner: result.winner,
-                winnerUserId: result.winner === activeMatch.player1Tag ? 
+                winnerUserId: result.winner === activeMatch.player1Tag ?
                     activeMatch.player1UserId : activeMatch.player2UserId,
+                isDraw: false,
                 result: result.result,
+                price: activeMatch.price,
                 validation: result.validation
             };
         }
@@ -118,7 +142,7 @@ export const checkMatchResult = async (channelId: string) => {
 export const finishMatch = async (channelId: string, winnerUserId: string) => {
     try {
         const activeMatch = await ActiveMatch.findOne({ channelId });
-        
+
         if (!activeMatch) {
             return { success: false, error: 'Partida não encontrada' };
         }
@@ -134,7 +158,7 @@ export const finishMatch = async (channelId: string, winnerUserId: string) => {
         return {
             success: true,
             winner: winnerUserId,
-            loser: winnerUserId === activeMatch.player1UserId ? 
+            loser: winnerUserId === activeMatch.player1UserId ?
                 activeMatch.player2UserId : activeMatch.player1UserId,
             price: activeMatch.price
         };
@@ -151,7 +175,7 @@ export const finishMatch = async (channelId: string, winnerUserId: string) => {
 export const cancelMatch = async (channelId: string) => {
     try {
         const activeMatch = await ActiveMatch.findOne({ channelId });
-        
+
         if (!activeMatch) {
             return { success: false, error: 'Partida não encontrada' };
         }
@@ -178,7 +202,7 @@ export const cancelMatch = async (channelId: string) => {
 export const getActiveMatchesForVerification = async () => {
     try {
         const cutoffTime = new Date(Date.now() - 2 * 60 * 1000); // 2 minutos atrás
-        
+
         return await ActiveMatch.find({
             status: { $in: ['confirmed', 'in_progress'] },
             autoVerificationEnabled: true,

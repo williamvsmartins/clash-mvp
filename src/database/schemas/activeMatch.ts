@@ -8,10 +8,10 @@ const activeMatchSchema = new mongoose.Schema({
     player2Tag: { type: String, required: true },
     price: { type: Number, required: true }, // em centavos
     startTime: { type: Date, required: true },
-    status: { 
-        type: String, 
-        enum: ['awaiting_confirmation', 'confirmed', 'in_progress', 'finished', 'cancelled'],
-        default: 'confirmed' 
+    status: {
+        type: String,
+        enum: ['awaiting_confirmation', 'confirmed', 'in_progress', 'finished', 'cancelled', 'draw'],
+        default: 'confirmed'
     },
     autoVerificationEnabled: { type: Boolean, default: false },
     verificationAttempts: { type: Number, default: 0 },

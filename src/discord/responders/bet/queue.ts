@@ -63,7 +63,7 @@ new Responder({
     const saldo = await getMoney(memberId);
 
     if (saldo < amountPayCents) {
-    // if (saldo < 0) {
+      // if (saldo < 0) {
       reply.danger({
         interaction,
         text: `Saldo insuficiente! Seu saldo atual é de R$ ${(saldo / 100).toFixed(2).replace('.', ',')}`
@@ -77,7 +77,13 @@ new Responder({
       const [user1, user2] = members;
 
       try {
-        await interaction.update(betMenu(amountPayStr, amountReceiveStr, []));
+        // Remove R$ dos valores antes de passar para betMenu
+        const cleanedAmountReceive = amountReceiveStr
+          .replace(/[^\d,.-]/g, '')
+          .replace(/\./g, '')
+          .replace(',', '.');
+
+        await interaction.update(betMenu(cleanedAmountPay, cleanedAmountReceive, []));
 
         const timestamp = Date.now().toString().slice(-6);
         const channel = await guild!.channels.create({
@@ -178,7 +184,8 @@ new Responder({
       return;
     }
 
-    await interaction.update(betMenu(amountPayStr, amountReceiveStr, members));
+    // Remove R$ dos valores antes de passar para betMenu
+    await interaction.update(betMenu(cleanedAmountPay, amountReceiveStr.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.'), members));
   },
 });
 
@@ -191,9 +198,20 @@ new Responder({
     const memberId = member.id;
 
     const valorField = message.embeds[0]?.fields[0]?.value || "R$ 0,00 / R$ 0,00";
-    const [amountPay, amountReceive] = valorField
+    const [amountPayStr, amountReceiveStr] = valorField
       .split(" / ")
       .map(v => v.trim());
+
+    // Limpa os valores removendo R$ e formatação
+    const cleanedAmountPay = amountPayStr
+      .replace(/[^\d,.-]/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.');
+
+    const cleanedAmountReceive = amountReceiveStr
+      .replace(/[^\d,.-]/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.');
 
     const fieldValue = message.embeds[0]?.fields[1]?.value || "";
     let members = fieldValue
@@ -211,6 +229,6 @@ new Responder({
 
     members = members.filter(id => id !== memberId);
 
-    await interaction.update(betMenu(amountPay, amountReceive, members));
+    await interaction.update(betMenu(cleanedAmountPay, cleanedAmountReceive, members));
   },
 });

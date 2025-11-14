@@ -1,5 +1,5 @@
 import { Responder, ResponderType } from "#base";
-import { reply, finishMatch, cancelMatch, checkMatchResult, premio } from "#functions";
+import { reply, cancelMatch, checkMatchResult, premio } from "#functions";
 import { ButtonStyle, ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "discord.js";
 import { Match } from "#database";
 import { deleteChannel } from "#functions";
@@ -9,7 +9,7 @@ new Responder({
     type: ResponderType.Button,
     cache: "cached",
     async run(interaction) {
-        const { member, channel, guild } = interaction;
+        const { channel, guild } = interaction;
 
         if (!channel || !guild) {
             await reply.danger({ interaction, text: "❌ Canal ou servidor não encontrado!" });
@@ -19,12 +19,11 @@ new Responder({
         await interaction.deferReply({ ephemeral: true });
 
         try {
-            const userId = member.id;
             const channelId = channel.id;
 
             // Busca os dados da partida ativa
             const activeMatchData = await checkMatchResult(channelId);
-            
+
             if (!activeMatchData.success) {
                 await interaction.followUp({
                     content: `❌ ${activeMatchData.error}`,
@@ -35,68 +34,110 @@ new Responder({
 
             // VERIFICAÇÃO OBRIGATÓRIA VIA API
             await interaction.followUp({
-                content: "🔍 **Verificando resultado na API do Clash Royale...**\nPor favor, aguarde...",
+                content: "🔍 **Checando vencedor...**\nPor favor, aguarde...",
                 ephemeral: true
             });
 
             const verificationResult = await checkMatchResult(channelId);
 
-            if (verificationResult.success && verificationResult.winner && verificationResult.winnerUserId) {
-                // ✅ PARTIDA VERIFICADA COM SUCESSO NA API
-                const winnerMention = `<@${verificationResult.winnerUserId}>`;
-                const loserUserId = verificationResult.winnerUserId === verificationResult.result?.player1.tag ? 
-                    activeMatchData.result?.player2.tag : activeMatchData.result?.player1.tag;
+            if (verificationResult.success) {
+                // Verifica se houve EMPATE
+                if (verificationResult.isDraw) {
+                    // ✅ EMPATE - REEMBOLSA AMBOS JOGADORES
+                    const player1Mention = `<@${verificationResult.player1UserId}>`;
+                    const player2Mention = `<@${verificationResult.player2UserId}>`;
 
-                // Finaliza a partida e premia o vencedor
-                const finishResult = await finishMatch(channelId, verificationResult.winnerUserId);
-                if (finishResult.success && finishResult.price) {
-                    await premio(verificationResult.winnerUserId, finishResult.price * 2);
+                    // Reembolsa ambos os jogadores
+                    if (verificationResult.price) {
+                        await Promise.all([
+                            premio(verificationResult.player1UserId!, verificationResult.price),
+                            premio(verificationResult.player2UserId!, verificationResult.price)
+                        ]);
+                    }
+
+                    const drawEmbed = new EmbedBuilder()
+                        .setColor(0xFFAA00)
+                        .setTitle('🤝 Partida Empatada!')
+                        .setDescription(
+                            `**⚔️ Resultado:** ${verificationResult.result?.player1.crowns} x ${verificationResult.result?.player2.crowns}\n` +
+                            `**🎮 Modo:** ${verificationResult.result?.gameMode}\n` +
+                            `**🏟️ Arena:** ${verificationResult.result?.arena}\n` +
+                            `**💰 Reembolso:** R$ ${(verificationResult.price! / 100).toFixed(2).replace('.', ',')} para cada jogador\n\n` +
+                            `✅ **Ambos os jogadores receberam reembolso completo!**`
+                        )
+                        .setFooter({ text: `Verificação: ${verificationResult.validation?.appliedRule || 'API_VALIDATION'}` })
+                        .setTimestamp();
+
+                    await channel.send({
+                        content: `${player1Mention} ${player2Mention}`,
+                        embeds: [drawEmbed]
+                    });
+
+                    await interaction.editReply({
+                        content: "🤝 **Partida empatada!** Valores reembolsados para ambos os jogadores."
+                    });
+
+                    // Agenda exclusão do canal
+                    setTimeout(async () => {
+                        await deleteChannel(channel as any);
+                    }, 30000);
+
+                    return;
                 }
 
-                // Registra no histórico
-                const matchRecord = new Match({
-                    channelId: channelId,
-                    match: `${verificationResult.result?.player1.name} vs ${verificationResult.result?.player2.name}`,
-                    winner: verificationResult.winnerUserId,
-                    date: new Date().toISOString()
-                });
-                await matchRecord.save();
+                // ✅ PARTIDA COM VENCEDOR
+                if (verificationResult.winner && verificationResult.winnerUserId) {
+                    const winnerMention = `<@${verificationResult.winnerUserId}>`;
 
-                const prizeAmount = finishResult.success && finishResult.price ? 
-                    finishResult.price * 2 : 0;
+                    // Premia o vencedor com o dobro do valor apostado
+                    if (verificationResult.price) {
+                        await premio(verificationResult.winnerUserId, verificationResult.price * 2);
+                    }
 
-                // Embed de resultado verificado
-                const resultEmbed = new EmbedBuilder()
-                    .setColor(0x00FF00)
-                    .setTitle('🎉 Partida Verificada e Finalizada!')
-                    .setDescription(
-                        `**🏆 Vencedor:** ${winnerMention}\n` +
-                        `**⚔️ Resultado:** ${verificationResult.result?.player1.crowns} x ${verificationResult.result?.player2.crowns}\n` +
-                        `**🎮 Modo:** ${verificationResult.result?.gameMode}\n` +
-                        `**🏟️ Arena:** ${verificationResult.result?.arena}\n` +
-                        `**💰 Prêmio:** R$ ${(prizeAmount / 100).toFixed(2).replace('.', ',')}\n\n` +
-                        `✅ **Resultado confirmado via API oficial do Clash Royale!**`
-                    )
-                    .setFooter({ text: `Verificação: ${verificationResult.validation?.appliedRule || 'API_VALIDATION'}` })
-                    .setTimestamp();
+                    // Registra no histórico
+                    const matchRecord = new Match({
+                        channelId: channelId,
+                        match: `${verificationResult.result?.player1.name} vs ${verificationResult.result?.player2.name}`,
+                        winner: verificationResult.winnerUserId,
+                        date: new Date().toISOString()
+                    });
+                    await matchRecord.save();
 
-                await channel.send({ 
-                    embeds: [resultEmbed] 
-                });
+                    const prizeAmount = verificationResult.price ? verificationResult.price * 2 : 0;
 
-                await interaction.editReply({
-                    content: "✅ **Partida finalizada com sucesso!** Resultado verificado na API do Clash Royale."
-                });
+                    // Embed de resultado verificado
+                    const resultEmbed = new EmbedBuilder()
+                        .setColor(0x00FF00)
+                        .setTitle('🎉 Partida Verificada e Finalizada!')
+                        .setDescription(
+                            `**🏆 Vencedor:** ${winnerMention}\n` +
+                            `**⚔️ Resultado:** ${verificationResult.result?.player1.crowns} x ${verificationResult.result?.player2.crowns}\n` +
+                            `**🎮 Modo:** ${verificationResult.result?.gameMode}\n` +
+                            `**🏟️ Arena:** ${verificationResult.result?.arena}\n` +
+                            `**💰 Prêmio:** R$ ${(prizeAmount / 100).toFixed(2).replace('.', ',')}\n\n` +
+                            `✅ **Resultado confirmado via API oficial do Clash Royale!**`
+                        )
+                        .setFooter({ text: `Verificação: ${verificationResult.validation?.appliedRule || 'API_VALIDATION'}` })
+                        .setTimestamp();
 
-                // Agenda exclusão do canal
-                setTimeout(async () => {
-                    await deleteChannel(channel as any);
-                }, 30000);
+                    await channel.send({
+                        embeds: [resultEmbed]
+                    });
+
+                    await interaction.editReply({
+                        content: "✅ **Partida finalizada com sucesso!** Resultado verificado na API do Clash Royale."
+                    });
+
+                    // Agenda exclusão do canal
+                    setTimeout(async () => {
+                        await deleteChannel(channel as any);
+                    }, 30000);
+                }
 
             } else {
                 // ❌ NÃO FOI POSSÍVEL VERIFICAR NA API
                 const errorMessage = verificationResult.error || 'Nenhuma partida encontrada na API';
-                
+
                 const failEmbed = new EmbedBuilder()
                     .setColor(0xFF0000)
                     .setTitle('❌ Não Foi Possível Verificar a Partida')
@@ -130,7 +171,7 @@ new Responder({
                             .setStyle(ButtonStyle.Danger)
                     );
 
-                await channel.send({ 
+                await channel.send({
                     embeds: [failEmbed],
                     components: [retryButtons]
                 });
@@ -173,66 +214,125 @@ new Responder({
 
             const verificationResult = await checkMatchResult(channelId);
 
-            if (verificationResult.success && verificationResult.winner && verificationResult.winnerUserId) {
-                // ✅ AGORA ENCONTROU A PARTIDA!
-                const winnerMention = `<@${verificationResult.winnerUserId}>`;
+            if (verificationResult.success) {
+                // Verifica se houve EMPATE
+                if (verificationResult.isDraw) {
+                    // ✅ EMPATE - REEMBOLSA AMBOS JOGADORES
+                    const player1Mention = `<@${verificationResult.player1UserId}>`;
+                    const player2Mention = `<@${verificationResult.player2UserId}>`;
 
-                // Finaliza a partida e premia o vencedor
-                const finishResult = await finishMatch(channelId, verificationResult.winnerUserId);
-                if (finishResult.success && finishResult.price) {
-                    await premio(verificationResult.winnerUserId, finishResult.price * 2);
-                }
+                    // Reembolsa ambos os jogadores
+                    if (verificationResult.price) {
+                        await Promise.all([
+                            premio(verificationResult.player1UserId!, verificationResult.price),
+                            premio(verificationResult.player2UserId!, verificationResult.price)
+                        ]);
+                    }
 
-                // Registra no histórico
-                const matchRecord = new Match({
-                    channelId: channelId,
-                    match: `${verificationResult.result?.player1.name} vs ${verificationResult.result?.player2.name}`,
-                    winner: verificationResult.winnerUserId,
-                    date: new Date().toISOString()
-                });
-                await matchRecord.save();
+                    const drawEmbed = new EmbedBuilder()
+                        .setColor(0xFFAA00)
+                        .setTitle('🤝 Partida Empatada!')
+                        .setDescription(
+                            `**⚔️ Resultado:** ${verificationResult.result?.player1.crowns} x ${verificationResult.result?.player2.crowns}\n` +
+                            `**🎮 Modo:** ${verificationResult.result?.gameMode}\n` +
+                            `**🏟️ Arena:** ${verificationResult.result?.arena}\n` +
+                            `**💰 Reembolso:** R$ ${(verificationResult.price! / 100).toFixed(2).replace('.', ',')} para cada jogador\n\n` +
+                            `✅ **Empate verificado na tentativa ${verificationResult.attempts || 1}!**\n` +
+                            `**Ambos os jogadores receberam reembolso completo!**`
+                        )
+                        .setFooter({ text: `Verificação: ${verificationResult.validation?.appliedRule || 'EMPATE'}` })
+                        .setTimestamp();
 
-                const prizeAmount = finishResult.success && finishResult.price ? 
-                    finishResult.price * 2 : 0;
-
-                const successEmbed = new EmbedBuilder()
-                    .setColor(0x00FF00)
-                    .setTitle('🎉 Partida Encontrada e Finalizada!')
-                    .setDescription(
-                        `**🏆 Vencedor:** ${winnerMention}\n` +
-                        `**⚔️ Resultado:** ${verificationResult.result?.player1.crowns} x ${verificationResult.result?.player2.crowns}\n` +
-                        `**🎮 Modo:** ${verificationResult.result?.gameMode}\n` +
-                        `**🏟️ Arena:** ${verificationResult.result?.arena}\n` +
-                        `**💰 Prêmio:** R$ ${(prizeAmount / 100).toFixed(2).replace('.', ',')}\n\n` +
-                        `✅ **Partida verificada com sucesso na tentativa ${verificationResult.attempts || 1}!**`
-                    )
-                    .setFooter({ text: 'Verificação Obrigatória - Sucesso' })
-                    .setTimestamp();
-
-                await channel.send({ embeds: [successEmbed] });
-
-                await interaction.editReply({
-                    content: "✅ **Sucesso!** Partida encontrada e finalizada."
-                });
-
-                // Remove botões da mensagem anterior
-                const messages = await channel.messages.fetch({ limit: 5 });
-                const failMessage = messages.find(m => 
-                    m.embeds[0]?.title === '❌ Não Foi Possível Verificar a Partida' && 
-                    m.components.length > 0
-                );
-                
-                if (failMessage) {
-                    await failMessage.edit({ 
-                        embeds: failMessage.embeds, 
-                        components: [] 
+                    await channel.send({
+                        content: `${player1Mention} ${player2Mention}`,
+                        embeds: [drawEmbed]
                     });
+
+                    await interaction.editReply({
+                        content: "🤝 **Empate detectado!** Valores reembolsados para ambos os jogadores."
+                    });
+
+                    // Remove botões da mensagem anterior
+                    const messages = await channel.messages.fetch({ limit: 5 });
+                    const failMessage = messages.find(m =>
+                        m.embeds[0]?.title === '❌ Não Foi Possível Verificar a Partida' &&
+                        m.components.length > 0
+                    );
+
+                    if (failMessage) {
+                        await failMessage.edit({
+                            embeds: failMessage.embeds,
+                            components: []
+                        });
+                    }
+
+                    // Agenda exclusão do canal
+                    setTimeout(async () => {
+                        await deleteChannel(channel as any);
+                    }, 30000);
+
+                    return;
                 }
 
-                // Agenda exclusão do canal
-                setTimeout(async () => {
-                    await deleteChannel(channel as any);
-                }, 30000);
+                // ✅ AGORA ENCONTROU A PARTIDA COM VENCEDOR!
+                if (verificationResult.winner && verificationResult.winnerUserId) {
+                    const winnerMention = `<@${verificationResult.winnerUserId}>`;
+
+                    // Premia o vencedor com o dobro do valor apostado
+                    if (verificationResult.price) {
+                        await premio(verificationResult.winnerUserId, verificationResult.price * 2);
+                    }
+
+                    // Registra no histórico
+                    const matchRecord = new Match({
+                        channelId: channelId,
+                        match: `${verificationResult.result?.player1.name} vs ${verificationResult.result?.player2.name}`,
+                        winner: verificationResult.winnerUserId,
+                        date: new Date().toISOString()
+                    });
+                    await matchRecord.save();
+
+                    const prizeAmount = verificationResult.price ? verificationResult.price * 2 : 0;
+
+                    const successEmbed = new EmbedBuilder()
+                        .setColor(0x00FF00)
+                        .setTitle('🎉 Partida Encontrada e Finalizada!')
+                        .setDescription(
+                            `**🏆 Vencedor:** ${winnerMention}\n` +
+                            `**⚔️ Resultado:** ${verificationResult.result?.player1.crowns} x ${verificationResult.result?.player2.crowns}\n` +
+                            `**🎮 Modo:** ${verificationResult.result?.gameMode}\n` +
+                            `**🏟️ Arena:** ${verificationResult.result?.arena}\n` +
+                            `**💰 Prêmio:** R$ ${(prizeAmount / 100).toFixed(2).replace('.', ',')}\n\n` +
+                            `✅ **Partida verificada com sucesso na tentativa ${verificationResult.attempts || 1}!**`
+                        )
+                        .setFooter({ text: 'Verificação Obrigatória - Sucesso' })
+                        .setTimestamp();
+
+                    await channel.send({ embeds: [successEmbed] });
+
+                    await interaction.editReply({
+                        content: "✅ **Sucesso!** Partida encontrada e finalizada."
+                    });
+
+                    // Remove botões da mensagem anterior
+                    const messages = await channel.messages.fetch({ limit: 5 });
+                    const failMessage = messages.find(m =>
+                        m.embeds[0]?.title === '❌ Não Foi Possível Verificar a Partida' &&
+                        m.components.length > 0
+                    );
+
+                    if (failMessage) {
+                        await failMessage.edit({
+                            embeds: failMessage.embeds,
+                            components: []
+                        });
+                    }
+
+                    // Agenda exclusão do canal
+                    setTimeout(async () => {
+                        await deleteChannel(channel as any);
+                    }, 30000);
+                }
 
             } else {
                 // ❌ AINDA NÃO ENCONTROU
@@ -241,16 +341,16 @@ new Responder({
 
                 await interaction.editReply({
                     content: `❌ **Ainda não encontrada:** ${errorMessage}\n` +
-                             `**Tentativas:** ${attempts}/10\n\n` +
-                             `💡 **Dica:** Aguarde 2-3 minutos após jogar antes de tentar novamente.`
+                        `**Tentativas:** ${attempts}/10\n\n` +
+                        `💡 **Dica:** Aguarde 2-3 minutos após jogar antes de tentar novamente.`
                 });
 
                 // Atualiza a mensagem anterior com nova contagem
                 const messages = await channel.messages.fetch({ limit: 5 });
-                const failMessage = messages.find(m => 
+                const failMessage = messages.find(m =>
                     m.embeds[0]?.title === '❌ Não Foi Possível Verificar a Partida'
                 );
-                
+
                 if (failMessage) {
                     const updatedEmbed = EmbedBuilder.from(failMessage.embeds[0])
                         .setFields(
