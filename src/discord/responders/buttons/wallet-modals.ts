@@ -24,7 +24,7 @@ new Responder({
         const valorReais = parseFloat(valorInput.replace(",", "."));
         const valorCentavos = Math.round(valorReais * 100);
 
-        if (valorCentavos <= 100 + env.RATE) {
+        if (valorCentavos < 100 + env.RATE) {
             await interaction.reply({
                 content: `O valor deve ser maior ou igual a R$ ${((100 + env.RATE) / 100).toFixed(2)}.`,
                 ephemeral: true,
@@ -33,7 +33,6 @@ new Responder({
         }
 
         await interaction.deferReply({ ephemeral: true });
-        console.log(interaction.user.username)
 
         try {
             const pixPayment = await criarPagamentoPix(
