@@ -62,8 +62,8 @@ new Responder({
 
     const saldo = await getMoney(memberId);
 
-    // if (saldo < amountPayCents) { AJUSTAR DEPOIS
-    if (saldo < 0) {
+    if (saldo < amountPayCents) {
+    // if (saldo < 0) {
       reply.danger({
         interaction,
         text: `Saldo insuficiente! Seu saldo atual é de R$ ${(saldo / 100).toFixed(2).replace('.', ',')}`

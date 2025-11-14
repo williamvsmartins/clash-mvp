@@ -75,6 +75,10 @@ new Responder({
                     files: [qrCodeAttachment],
                 });
 
+                await interaction.user.send({
+                    content: `${pixPayment.qrCode}`
+                });
+
                 await interaction.followUp({
                     content: '✅ QR Code enviado no seu privado! Verifique suas mensagens diretas.',
                     ephemeral: true,
@@ -89,6 +93,11 @@ new Responder({
                     content: '⚠️ Não foi possível enviar no privado. Aqui está seu QR Code (esta mensagem é visível apenas para você):',
                     embeds: [embed],
                     files: [qrCodeAttachment2],
+                    ephemeral: true,
+                });
+
+                await interaction.followUp({
+                    content: `${pixPayment.qrCode}`,
                     ephemeral: true,
                 });
             }

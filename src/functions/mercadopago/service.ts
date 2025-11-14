@@ -39,7 +39,7 @@ export async function criarPagamentoPix(
                 last_name: 'User',
                 identification: {
                     type: 'CPF',
-                    number: '42501886046',
+                    number: '07594802306',
                 },
             },
             metadata: {
@@ -48,7 +48,6 @@ export async function criarPagamentoPix(
         };
 
         const response = await payment.create({ body });
-        console.log('Resposta do Mercado Pago ao criar pagamento PIX:', response);
 
         if (!response.point_of_interaction?.transaction_data) {
             throw new Error('Falha ao gerar dados do PIX');
