@@ -45,6 +45,13 @@ export const BONUS_LOGIN_DIARIO = 50; // R$ 0,50
 /** Bônus pela primeira vitória do dia (centavos). */
 export const BONUS_PRIMEIRA_VITORIA = 25; // R$ 0,25
 
+/**
+ * Minutos sem adversário após o 1º jogador entrar na fila antes de notificar
+ * os demais membros do servidor para chamar alguém para jogar.
+ * Ajuste conforme o tempo médio de espera aceitável na sua plataforma.
+ */
+export const QUEUE_NOTIFY_AFTER_MINUTES = 2;
+
 // ─── Projeção de lucro (referência) ──────────────────────────────────────────
 
 /**

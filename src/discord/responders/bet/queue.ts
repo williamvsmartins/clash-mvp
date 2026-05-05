@@ -1,7 +1,7 @@
 import { Responder, ResponderType } from "#base";
-import { reply, betMenu, getMoney } from "#functions";
+import { reply, betMenu, getMoney, scheduleQueueNotification, cancelQueueNotification } from "#functions";
 import { PendingMatch } from "#database";
-import { ChannelType, PermissionFlagsBits, EmbedBuilder } from "discord.js";
+import { ChannelType, PermissionFlagsBits, EmbedBuilder, TextChannel } from "discord.js";
 
 export const matchData = new Map<string, {
   user1: string;
@@ -80,6 +80,9 @@ new Responder({
 
     if (members.length >= 2) {
       const [user1, user2] = members;
+
+      // 2º jogador entrou — cancelar notificação pendente desta fila
+      cancelQueueNotification(message.id);
 
       try {
         // Remove R$ dos valores antes de passar para betMenu
@@ -198,6 +201,11 @@ new Responder({
 
     // Remove R$ dos valores antes de passar para betMenu
     await interaction.update(betMenu(cleanedAmountPay, amountReceiveStr.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.'), members));
+
+    // 1º jogador entrou — agendar notificação caso ninguém entre em breve
+    if (members.length === 1 && message.channel.isTextBased() && 'send' in message.channel) {
+      scheduleQueueNotification(message.channel as TextChannel, message.id, memberId, amountPayCents);
+    }
   },
 });
 
@@ -239,6 +247,11 @@ new Responder({
     }
 
     members = members.filter(id => id !== memberId);
+
+    // Fila ficou vazia — cancelar notificação pendente
+    if (members.length === 0) {
+      cancelQueueNotification(message.id);
+    }
 
     await interaction.update(betMenu(cleanedAmountPay, cleanedAmountReceive, members));
   },
