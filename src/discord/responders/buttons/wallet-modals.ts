@@ -145,7 +145,7 @@ new Responder({
 
         const saldo = await getMoney(interaction.user.id);
 
-        if (valorCentavos > saldo) {
+        if (saldo <= 0 || valorCentavos > saldo) {
             await interaction.reply({
                 content: `Saldo insuficiente! Seu saldo atual é de R$ ${(saldo / 100).toFixed(2).replace('.', ',')}`,
                 ephemeral: true,
