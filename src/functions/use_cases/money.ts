@@ -1,4 +1,5 @@
 import { Transaction, User } from '#database';
+import { calcularPremio } from '#settings';
 import { saveNotion } from './notion.js';
 
 export const getMoney = async (userId: string): Promise<number> => {
@@ -87,17 +88,19 @@ export const estornoPartida = async (userId1: string, userId2: string, valor: nu
     await Promise.all(ops);
 };
 
-export const premio = async (userId: string, valor: number) => {
+export const premio = async (userId: string, pote: number) => {
     const user = await User.findOne({ userId });
     if (!user) throw new Error(`Usuário ${userId} não encontrado ao conceder prêmio`);
 
-    user.moedas += valor;
+    const { premioVencedor, rakePlataforma } = calcularPremio(pote);
+
+    user.moedas += premioVencedor;
     await user.save();
 
     await Transaction.create({
         userId,
         type: 'premio',
-        amount: valor,
-        description: 'Prêmio de partida vencida',
+        amount: premioVencedor,
+        description: `Prêmio de partida vencida (rake: ${rakePlataforma} centavos)`,
     });
 };

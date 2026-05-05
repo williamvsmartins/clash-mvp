@@ -7,5 +7,6 @@ export const settings = settingsJson;
 
 export * from "./env.js";
 export * from "./error.js";
+export * from "./platform.js";
 
 log.success(chalk.green("✅ Configurações carregadas!"));
