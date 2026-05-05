@@ -1,7 +1,7 @@
 import { Responder, ResponderType } from "#base";
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, TextChannel } from "discord.js";
 import { Confirmation, User, PendingMatch } from "#database";
-import { descontoPartida, createActiveMatch, getMoney } from "#functions";
+import { descontoPartida, estornoPartida, createActiveMatch, getMoney } from "#functions";
 import { matchData } from "./queue.js";
 
 const confirmations = new Map<string, Set<string>>();
@@ -124,6 +124,24 @@ new Responder({
 
                 await descontoPartida(user1, user2, priceInCents);
 
+                try {
+                    await createActiveMatch({
+                        channelId,
+                        player1UserId: user1,
+                        player2UserId: user2,
+                        player1Tag: player1.clashTag,
+                        player2Tag: player2.clashTag,
+                        price: priceInCents,
+                        autoVerificationEnabled: true,
+                        timeoutMinutes: 30
+                    });
+                } catch (error) {
+                    // Débito já ocorreu — estorna antes de propagar
+                    console.error('Erro ao criar partida ativa, estornando débito:', error);
+                    await estornoPartida(user1, user2, priceInCents);
+                    throw error;
+                }
+
                 await Confirmation.create({
                     channelId: channel.id,
                     user1: user1,
@@ -172,25 +190,6 @@ new Responder({
                         `⚔️ **Que comece a batalha!**\n\n` +
                         `Envie o link de amizade abaixo para iniciar a partida.`
                 });
-
-                // Cria registro da partida ativa para verificação automática
-                try {
-                    await createActiveMatch({
-                        channelId,
-                        player1UserId: user1,
-                        player2UserId: user2,
-                        player1Tag: player1.clashTag,
-                        player2Tag: player2.clashTag,
-                        price: priceInCents,
-                        autoVerificationEnabled: true,
-                        timeoutMinutes: 30
-                    });
-                    
-                    console.log(`✅ Partida ativa criada para canal ${channelId}`);
-                } catch (error) {
-                    console.error('Erro ao criar partida ativa:', error);
-                    // Não falha a confirmação se der erro aqui
-                }
 
                 confirmations.delete(channelId);
                 matchData.delete(channelId);

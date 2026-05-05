@@ -72,6 +72,21 @@ export const descontoPartida = async (userId1: string, userId2: string, valor: n
     });
 };
 
+export const estornoPartida = async (userId1: string, userId2: string, valor: number) => {
+    const [user1, user2] = await Promise.all([
+        User.findOne({ userId: userId1 }),
+        User.findOne({ userId: userId2 }),
+    ]);
+
+    if (user1) { user1.moedas += valor; await user1.save(); }
+    if (user2) { user2.moedas += valor; await user2.save(); }
+
+    const ops = [];
+    if (user1) ops.push(Transaction.create({ userId: userId1, type: 'estorno', amount: valor, description: 'Estorno — falha ao criar partida' }));
+    if (user2) ops.push(Transaction.create({ userId: userId2, type: 'estorno', amount: valor, description: 'Estorno — falha ao criar partida' }));
+    await Promise.all(ops);
+};
+
 export const premio = async (userId: string, valor: number) => {
     const user = await User.findOne({ userId });
     if (!user) throw new Error(`Usuário ${userId} não encontrado ao conceder prêmio`);
