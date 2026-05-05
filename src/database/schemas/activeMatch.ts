@@ -30,7 +30,6 @@ const activeMatchSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-activeMatchSchema.index({ channelId: 1 });
 activeMatchSchema.index({ status: 1, autoVerificationEnabled: 1 });
 activeMatchSchema.index({ startTime: 1 });
 activeMatchSchema.index({ player1UserId: 1 });
