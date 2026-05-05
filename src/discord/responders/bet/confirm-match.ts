@@ -156,17 +156,23 @@ new Responder({
 
                 const confirmedEmbed = new EmbedBuilder()
                     .setColor(0x00FF00)
-                    .setTitle('✅ Partida Confirmada!')
+                    .setTitle('✅ Partida Confirmada — Siga os passos abaixo!')
                     .setDescription(
                         `**Jogadores:**\n` +
                         `<@${user1}> ✅\n` +
                         `<@${user2}> ✅\n\n` +
-                        `**Valor Descontado:** ${fmt(priceInCents)} por jogador\n` +
-                        `**Prêmio do Vencedor:** ${fmt(premioVencedor)}\n\n` +
-                        `🎮 **Agora vocês podem jogar!**\n\n` +
-                        `📎 **Envie o link de amizade do Clash Royale aqui:**\n` +
-                        `Formato: \`https://link.clashroyale.com/invite/friend/...\`\n\n` +
-                        `O vencedor deve clicar em **Finalizar** após a partida.`
+                        `**Valor descontado:** ${fmt(priceInCents)} por jogador\n` +
+                        `**Prêmio do vencedor:** ${fmt(premioVencedor)} *(após rake de 10%)*\n\n` +
+                        `━━━━━━━━━━━━━━━━━━━━\n` +
+                        `**📋 Como jogar:**\n\n` +
+                        `**Passo 1 —** Um dos jogadores envia o link de amizade do Clash Royale **neste canal**:\n` +
+                        `\`https://link.clashroyale.com/invite/friend/...\`\n` +
+                        `*(Abra o Clash Royale → Perfil → Compartilhar → copie o link)*\n\n` +
+                        `**Passo 2 —** O outro jogador aceita o convite no jogo e inicia uma partida **1v1 Amistosa**\n\n` +
+                        `**Passo 3 —** Após a partida terminar, qualquer um dos jogadores clica em **Finalizar Partida**\n` +
+                        `O resultado será verificado automaticamente via API do Clash Royale\n\n` +
+                        `━━━━━━━━━━━━━━━━━━━━\n` +
+                        `⏱️ Você tem **30 minutos** para jogar — após isso a partida expira e os valores são estornados.`
                     )
                     .setFooter({ text: 'ClashBet • Boa sorte! 🍀' })
                     .setTimestamp();
@@ -189,10 +195,11 @@ new Responder({
                 });
 
                 await channel.send({
-                    content: `🎉 **Partida confirmada por ambos os jogadores!**\n\n` +
-                        `💰 ${fmt(priceInCents)} descontado de cada jogador — prêmio: **${fmt(premioVencedor)}**\n` +
-                        `⚔️ **Que comece a batalha!**\n\n` +
-                        `Envie o link de amizade abaixo para iniciar a partida.`
+                    content:
+                        `<@${user1}> <@${user2}>\n\n` +
+                        `🎉 **Ambos confirmaram! A partida está pronta.**\n\n` +
+                        `**Próximo passo:** Um de vocês deve enviar o link de amizade do Clash Royale aqui.\n` +
+                        `Para pegar o link: abra o Clash Royale → toque no seu perfil → **Compartilhar** → copie o link e cole aqui.`
                 });
 
                 confirmations.delete(channelId);
