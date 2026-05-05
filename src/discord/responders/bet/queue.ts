@@ -1,5 +1,6 @@
 import { Responder, ResponderType } from "#base";
 import { reply, betMenu, getMoney } from "#functions";
+import { PendingMatch } from "#database";
 import { ChannelType, PermissionFlagsBits, EmbedBuilder } from "discord.js";
 
 export const matchData = new Map<string, {
@@ -125,6 +126,13 @@ new Responder({
           user1,
           user2,
           price: amountPayCents
+        });
+
+        await PendingMatch.create({
+          channelId: channel.id,
+          user1,
+          user2,
+          price: amountPayCents,
         });
 
         const matchEmbed = new EmbedBuilder()

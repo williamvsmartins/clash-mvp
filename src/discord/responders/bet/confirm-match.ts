@@ -1,6 +1,6 @@
 import { Responder, ResponderType } from "#base";
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, TextChannel } from "discord.js";
-import { Confirmation, User } from "#database";
+import { Confirmation, User, PendingMatch } from "#database";
 import { descontoPartida, createActiveMatch, getMoney } from "#functions";
 import { matchData } from "./queue.js";
 
@@ -77,6 +77,7 @@ new Responder({
                 if (!player1?.clashTag || !player2?.clashTag) {
                     confirmations.delete(channelId);
                     matchData.delete(channelId);
+                    await PendingMatch.deleteOne({ channelId });
 
                     const semTagEmbed = new EmbedBuilder()
                         .setColor(0xFF0000)
@@ -100,6 +101,7 @@ new Responder({
                 if (saldo1 < priceInCents || saldo2 < priceInCents) {
                     confirmations.delete(channelId);
                     matchData.delete(channelId);
+                    await PendingMatch.deleteOne({ channelId });
 
                     const semSaldoEmbed = new EmbedBuilder()
                         .setColor(0xFF0000)
@@ -192,6 +194,7 @@ new Responder({
 
                 confirmations.delete(channelId);
                 matchData.delete(channelId);
+                await PendingMatch.deleteOne({ channelId });
 
             } catch (error) {
                 console.error('Erro ao confirmar partida:', error);
@@ -263,6 +266,7 @@ new Responder({
 
         confirmations.delete(channelId);
         matchData.delete(channelId);
+        await PendingMatch.deleteOne({ channelId });
 
         const canceledEmbed = new EmbedBuilder()
             .setColor(0xFF0000)
