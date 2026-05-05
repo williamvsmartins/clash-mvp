@@ -12,8 +12,8 @@ new Command({
   options: [
     {
       name: 'valor',
-      description: 'Valor em reais para a fila',
-      type: 4,
+      description: 'Valor em reais para a fila (use ponto para decimais, ex: 0.5 para R$0,50)',
+      type: 10,
       required: true
     },
     {
@@ -24,7 +24,7 @@ new Command({
     }
   ],
   async run(interaction) {
-    const valor = interaction.options.getInteger('valor', true);
+    const valor = interaction.options.getNumber('valor', true);
     const channelOption = interaction.options.getChannel('canal', true);
 
     if (channelOption.type !== ChannelType.GuildText) {
@@ -38,7 +38,7 @@ new Command({
       return;
     }
 
-    const amountPayCents = valor * 100;
+    const amountPayCents = Math.round(valor * 100);
     const { premioVencedor } = calcularPremio(amountPayCents * 2);
 
     await channel.send(betMenu(amountPayCents, premioVencedor));
