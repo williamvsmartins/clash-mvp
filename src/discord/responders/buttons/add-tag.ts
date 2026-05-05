@@ -4,6 +4,9 @@ import {
     TextInputBuilder,
     TextInputStyle,
     ActionRowBuilder,
+    EmbedBuilder,
+    ButtonBuilder,
+    ButtonStyle,
 } from 'discord.js';
 import { User, ActiveMatch } from '#database';
 import { getClashPlayer } from 'functions/clash-royale/getPlayer.js';
@@ -17,19 +20,41 @@ new Responder({
         const existing = await User.findOne({ userId });
 
         if (existing?.clashTag) {
-            const modal = new ModalBuilder()
-                .setCustomId('clash_tag_modal')
-                .setTitle('Alterar Tag do Clash Royale');
+            await interaction.deferReply({ ephemeral });
 
-            const tagInput = new TextInputBuilder()
-                .setCustomId('clashTag')
-                .setLabel(`Tag atual: #${existing.clashTag}`)
-                .setPlaceholder('Digite a nova tag (ex: #QV980G)')
-                .setStyle(TextInputStyle.Short)
-                .setRequired(true);
+            let playerInfo: Record<string, unknown> | null = null;
+            try {
+                playerInfo = await getClashPlayer(existing.clashTag);
+            } catch {
+                // API indisponível — mostra só a tag
+            }
 
-            modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(tagInput));
-            await interaction.showModal(modal);
+            const name = playerInfo?.name as string | undefined;
+            const trophies = playerInfo?.trophies as number | undefined;
+            const expLevel = playerInfo?.expLevel as number | undefined;
+            const arena = (playerInfo?.arena as { name?: string } | undefined)?.name;
+            const clan = (playerInfo?.clan as { name?: string } | undefined)?.name;
+
+            const embed = new EmbedBuilder()
+                .setColor(0x5865F2)
+                .setTitle('🏆 Sua conta vinculada')
+                .addFields(
+                    { name: 'Jogador', value: name ? `**${name}** (#${existing.clashTag})` : `#${existing.clashTag}`, inline: false },
+                    { name: 'Nível', value: expLevel != null ? String(expLevel) : '—', inline: true },
+                    { name: 'Troféus', value: trophies != null ? `🏆 ${trophies.toLocaleString('pt-BR')}` : '—', inline: true },
+                    { name: 'Arena', value: arena ?? '—', inline: true },
+                    { name: 'Clã', value: clan ?? 'Sem clã', inline: true },
+                )
+                .setFooter({ text: 'Clique em "Alterar tag" para vincular outra conta.' });
+
+            const button = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                new ButtonBuilder()
+                    .setCustomId('alterar_tag')
+                    .setLabel('Alterar tag')
+                    .setStyle(ButtonStyle.Secondary),
+            );
+
+            await interaction.editReply({ embeds: [embed], components: [button] });
             return;
         }
 
@@ -40,6 +65,26 @@ new Responder({
         const tagInput = new TextInputBuilder()
             .setCustomId('clashTag')
             .setLabel('Sua Tag do Clash Royale')
+            .setPlaceholder('#QV980G')
+            .setStyle(TextInputStyle.Short)
+            .setRequired(true);
+
+        modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(tagInput));
+        await interaction.showModal(modal);
+    },
+});
+
+new Responder({
+    customId: 'alterar_tag',
+    type: ResponderType.Button, cache: 'cached',
+    async run(interaction) {
+        const modal = new ModalBuilder()
+            .setCustomId('clash_tag_modal')
+            .setTitle('Alterar Tag do Clash Royale');
+
+        const tagInput = new TextInputBuilder()
+            .setCustomId('clashTag')
+            .setLabel('Nova tag do Clash Royale')
             .setPlaceholder('#QV980G')
             .setStyle(TextInputStyle.Short)
             .setRequired(true);
@@ -70,8 +115,19 @@ new Responder({
         });
 
         if (partidaAtiva) {
+            const fmt = (cents: number) => `R$ ${(cents / 100).toFixed(2).replace('.', ',')}`;
+            const channelLink = `<#${partidaAtiva.channelId}>`;
+
             await interaction.editReply({
-                content: '❌ | Você possui uma partida em andamento. Não é possível alterar sua tag agora.',
+                content: [
+                    '❌ | Você possui uma partida em andamento — a tag não pode ser alterada agora.',
+                    ``,
+                    `**Canal:** ${channelLink}`,
+                    `**Valor:** ${fmt(partidaAtiva.price)}`,
+                    `**Adversário:** <@${partidaAtiva.player1UserId === userId ? partidaAtiva.player2UserId : partidaAtiva.player1UserId}>`,
+                    ``,
+                    `Acesse o canal acima para finalizar ou cancelar a partida.`,
+                ].join('\n'),
             });
             return;
         }
