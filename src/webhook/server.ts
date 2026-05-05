@@ -6,6 +6,7 @@ const PORT = env.WEBHOOK_PORT;
 const MAX_BODY_BYTES = 1024 * 16; // 16 KB — enough for any MP webhook payload
 
 export function startWebhookServer() {
+    const port = PORT ?? 3000;
     const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
         const urlPath = req.url?.split('?')[0] ?? '';
 
@@ -78,8 +79,8 @@ export function startWebhookServer() {
         res.end(JSON.stringify({ error: 'Not found' }));
     });
 
-    server.listen(PORT, () => {
-        console.log(`Webhook server listening on port ${PORT}`);
+    server.listen(port, () => {
+        console.log(`Webhook server listening on port ${port}`);
     });
 
     return server;

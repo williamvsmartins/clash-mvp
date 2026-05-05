@@ -17,7 +17,13 @@ export const envSchema = z.object({
     MERCADO_PAGO_PAYER_CPF: z.string().optional().default(""),
 
     // Webhook
-    WEBHOOK_PORT: z.string().transform(Number).default("3000"),
+    WEBHOOK_PORT: z.string()
+        .optional()
+        .default("3000")
+        .transform(val => {
+            const parsed = parseInt(val.trim(), 10);
+            return isNaN(parsed) || parsed <= 0 ? 3000 : parsed;
+        }),
 
     // Notion (credenciais de API externa — audit trail financeiro)
     NOTION_API_KEY: z.string().optional().default(""),
