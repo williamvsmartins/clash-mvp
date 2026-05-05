@@ -202,9 +202,9 @@ new Responder({
     // Remove R$ dos valores antes de passar para betMenu
     await interaction.update(betMenu(cleanedAmountPay, amountReceiveStr.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.'), members));
 
-    // 1º jogador entrou — agendar notificação caso ninguém entre em breve
+    // 1º jogador entrou — agendar alerta no canal dedicado caso ninguém entre em breve
     if (members.length === 1 && message.channel.isTextBased() && 'send' in message.channel) {
-      scheduleQueueNotification(message.channel as TextChannel, message.id, memberId, amountPayCents);
+      scheduleQueueNotification(interaction.client, message.channel as TextChannel, message.id, memberId, amountPayCents);
     }
   },
 });

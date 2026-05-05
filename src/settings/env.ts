@@ -25,8 +25,10 @@ export const envSchema = z.object({
     // Discord IDs
     CHANNEL_ID: z.string().optional().default(""),
     CHANNEL_ID_QUEUE: z.string().optional().default(""),
+    CHANNEL_ID_ALERTS: z.string().optional().default(""),
     REGISTERED_ROLE_ID: z.string().optional().default(""),
     SUPORTE_ROLE_ID: z.string().optional().default(""),
+    AVAILABLE_ROLE_ID: z.string().optional().default(""),
 
     // Settings
     RATE: z.string().transform(Number).default("10"),
@@ -58,8 +60,10 @@ declare global {
             DATABASE_DEPOSIT_ID?: string;
             CHANNEL_ID?: string;
             CHANNEL_ID_QUEUE?: string;
+            CHANNEL_ID_ALERTS?: string;
             REGISTERED_ROLE_ID?: string;
             SUPORTE_ROLE_ID?: string;
+            AVAILABLE_ROLE_ID?: string;
             RATE?: string;
             [key: string]: string | undefined;
         }

@@ -1,9 +1,9 @@
-import { TextChannel } from 'discord.js';
+import { Client, TextChannel } from 'discord.js';
+import { env } from '#settings';
 import { QUEUE_NOTIFY_AFTER_MINUTES } from '#settings';
 
 interface QueueEntry {
     userId: string;
-    channelId: string;
     messageId: string;
     price: number;
     timer: ReturnType<typeof setTimeout>;
@@ -12,13 +12,45 @@ interface QueueEntry {
 // messageId → entry (uma entrada por mensagem de fila)
 const queueTimers = new Map<string, QueueEntry>();
 
+const buildAlertMessage = (userId: string, price: number): string => {
+    const priceFormatted = `R$ ${(price / 100).toFixed(2).replace('.', ',')}`;
+    const roleMention = env.AVAILABLE_ROLE_ID ? `<@&${env.AVAILABLE_ROLE_ID}> ` : '';
+    return (
+        `${roleMention}🔔 **Fila aberta!** <@${userId}> está aguardando um adversário ` +
+        `na fila de **${priceFormatted}**. Quem topa? ⬆️`
+    );
+};
+
+const fetchAlertsChannel = async (client: Client): Promise<TextChannel | null> => {
+    if (!env.CHANNEL_ID_ALERTS) return null;
+    try {
+        const channel = await client.channels.fetch(env.CHANNEL_ID_ALERTS);
+        if (channel?.isTextBased() && 'send' in channel) return channel as TextChannel;
+    } catch { /* canal não encontrado ou sem permissão */ }
+    return null;
+};
+
+const confirmStillWaiting = async (queueChannel: TextChannel, messageId: string): Promise<boolean> => {
+    try {
+        const msg = await queueChannel.messages.fetch(messageId);
+        const fieldValue = msg.embeds[0]?.fields?.[1]?.value ?? '';
+        const members = fieldValue
+            .split('\n')
+            .map(v => v.trim().replace(/<@|>/g, ''))
+            .filter(id => /^\d+$/.test(id));
+        return members.length === 1;
+    } catch {
+        return false;
+    }
+};
+
 export const scheduleQueueNotification = (
-    channel: TextChannel,
+    client: Client,
+    queueChannel: TextChannel,
     messageId: string,
     userId: string,
     price: number,
 ) => {
-    // Não agendar duas vezes para a mesma mensagem
     if (queueTimers.has(messageId)) return;
 
     const delayMs = QUEUE_NOTIFY_AFTER_MINUTES * 60 * 1000;
@@ -26,28 +58,16 @@ export const scheduleQueueNotification = (
     const timer = setTimeout(async () => {
         queueTimers.delete(messageId);
 
-        // Busca a mensagem para confirmar que ainda há exatamente 1 jogador esperando
-        try {
-            const msg = await channel.messages.fetch(messageId);
-            const fieldValue = msg.embeds[0]?.fields?.[1]?.value ?? '';
-            const members = fieldValue
-                .split('\n')
-                .map(v => v.trim().replace(/<@|>/g, ''))
-                .filter(id => /^\d+$/.test(id));
+        const stillWaiting = await confirmStillWaiting(queueChannel, messageId);
+        if (!stillWaiting) return;
 
-            if (members.length !== 1) return; // já entrou alguém ou ficou vazia
+        const alertsChannel = await fetchAlertsChannel(client);
+        if (!alertsChannel) return;
 
-            const priceFormatted = `R$ ${(price / 100).toFixed(2).replace('.', ',')}`;
-
-            await channel.send(
-                `🔔 **Adversário procurado!** <@${members[0]}> está aguardando um oponente na fila de **${priceFormatted}** há mais de ${QUEUE_NOTIFY_AFTER_MINUTES} minuto(s). Quem topa? ⬆️`
-            );
-        } catch {
-            // Mensagem deletada ou canal inacessível — sem ação necessária
-        }
+        await alertsChannel.send(buildAlertMessage(userId, price));
     }, delayMs);
 
-    queueTimers.set(messageId, { userId, channelId: channel.id, messageId, price, timer });
+    queueTimers.set(messageId, { userId, messageId, price, timer });
 };
 
 export const cancelQueueNotification = (messageId: string) => {

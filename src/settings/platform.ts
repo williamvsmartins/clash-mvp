@@ -50,7 +50,7 @@ export const BONUS_PRIMEIRA_VITORIA = 25; // R$ 0,25
  * os demais membros do servidor para chamar alguém para jogar.
  * Ajuste conforme o tempo médio de espera aceitável na sua plataforma.
  */
-export const QUEUE_NOTIFY_AFTER_MINUTES = 2;
+export const QUEUE_NOTIFY_AFTER_MINUTES = 1;
 
 // ─── Projeção de lucro (referência) ──────────────────────────────────────────
 
