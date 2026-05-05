@@ -19,15 +19,22 @@ export async function processarWebhookPagamento(paymentId: number) {
             return;
         }
 
-        if (pixPayment.status === 'approved') {
-            console.log(`Pagamento ${paymentId} já foi processado anteriormente`);
-            return;
-        }
-
         if (paymentData.status === 'approved') {
+            // Marca como approved atomicamente — só prossegue se ainda estava pending.
+            // Isso garante idempotência: retries do Mercado Pago não creditam duas vezes.
+            const claimed = await PixPayment.findOneAndUpdate(
+                { mercadoPagoId: paymentId, status: { $in: ['pending', 'in_progress'] } },
+                { status: 'approved' }
+            );
+
+            if (!claimed) {
+                console.log(`Pagamento ${paymentId} já foi processado anteriormente`);
+                return;
+            }
+
             console.log(`✅ Pagamento ${paymentId} aprovado! Processando depósito...`);
 
-            await deposito(pixPayment.userId, pixPayment.valor, paymentId);
+            await deposito(pixPayment.userId, pixPayment.valor);
 
             console.log(`✅ Depósito de ${pixPayment.valor} centavos realizado para o usuário ${pixPayment.userId}`);
 

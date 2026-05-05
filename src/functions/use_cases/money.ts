@@ -1,4 +1,4 @@
-import { Transaction, User, PixPayment } from '#database';
+import { Transaction, User } from '#database';
 import { saveNotion } from './notion.js';
 
 export const getMoney = async (userId: string): Promise<number> => {
@@ -11,7 +11,7 @@ export const getMoney = async (userId: string): Promise<number> => {
     }
 };
 
-export const deposito = async (id: string, valor: number, mercadoPagoId?: number) => {
+export const deposito = async (id: string, valor: number) => {
     try {
         const user = await User.findOne({ userId: id });
         if (user) {
@@ -22,17 +22,8 @@ export const deposito = async (id: string, valor: number, mercadoPagoId?: number
                 userId: id,
                 type: 'depósito',
                 amount: valor,
-                description: mercadoPagoId
-                    ? `Depósito via PIX - Pagamento #${mercadoPagoId}`
-                    : 'Depósito realizado',
+                description: 'Depósito via PIX',
             });
-
-            if (mercadoPagoId) {
-                await PixPayment.findOneAndUpdate(
-                    { mercadoPagoId },
-                    { status: 'approved' }
-                );
-            }
         }
     } catch (error) {
         console.log('Erro ao realizar depósito:', error);
