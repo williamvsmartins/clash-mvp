@@ -69,6 +69,18 @@ The `Responder` type hierarchy falls back: specific select type → `Select` →
 5. **Wallet** (`deposito_modal` / `saque_modal` modals) — deposit via Mercado Pago PIX (`criarPagamentoPix`), withdraw via PIX key. Balance stored as integer **centavos** in `User.moedas`.
 6. **Webhook** — HTTP server on `WEBHOOK_PORT` receives `payment.updated`/`payment.created` events from Mercado Pago at `POST /webhook/mercadopago`, then calls `processarWebhookPagamento` to credit the user.
 
+### Business Model (ClashBet)
+
+All business parameters live in `src/settings/platform.ts`. **Never hardcode financial values elsewhere — always import from there.**
+
+- **Rake de 10%** — a plataforma retém 10% do pote total em cada partida. Ex: aposta R$10 cada → pote R$20 → vencedor recebe R$18, casa fica com R$2. Configurável via `RAKE_RATE`.
+- **`calcularPremio(pote)`** — helper central que aplica o rake. Toda chamada a `premio()` já usa isso automaticamente.
+- **Sistema de escada (12 níveis)** — apostas de R$0,50 a R$280,00. Prêmio do nível N ≥ aposta do nível N+1, incentivando reinvestimento. Definido em `LADDER`.
+- **Bônus de login diário** — R$0,50 (configurável via `BONUS_LOGIN_DIARIO`). Garante aposta grátis no nível 1.
+- **Bônus de primeira vitória do dia** — R$0,25 (configurável via `BONUS_PRIMEIRA_VITORIA`).
+- **Projeção de lucro** — base: ~R$67,04/dia a cada 100 duelos; potencial de R$1.206.720,00/ano a 5.000 duelos/dia.
+- **Sociedade** — Sócio 1: 42,5% · Sócio 2: 42,5% · Novo Sócio: 15% (com meta de +10% futuro). Definido em `SOCIEDADE`.
+
 ### Key Design Decisions
 
 - **Money is stored in centavos (integer)** — always divide by 100 for display. Never store floats. `User.moedas` defaults to `0` (not `0.0`).
