@@ -16,7 +16,11 @@ new Responder({
   async run(interaction) {
     const { member, message, guild } = interaction;
 
-    const fieldValue = message.embeds[0]?.fields[1]?.value || "";
+    const fieldValue = message.embeds[0]?.fields?.[1]?.value;
+    if (!fieldValue) {
+      reply.danger({ interaction, text: "Erro ao ler os dados da fila. Tente novamente." });
+      return;
+    }
     let members = fieldValue
       .split("\n")
       .map(v => v.trim().replace(/<@|>/g, ""))
@@ -221,11 +225,10 @@ new Responder({
       .replace(/\./g, '')
       .replace(',', '.');
 
-    const fieldValue = message.embeds[0]?.fields[1]?.value || "";
+    const fieldValue = message.embeds[0]?.fields?.[1]?.value;
     let members = fieldValue
-      .split("\n")
-      .map(v => v.trim().replace(/<@|>/g, ""))
-      .filter(id => /^\d+$/.test(id));
+      ? fieldValue.split("\n").map(v => v.trim().replace(/<@|>/g, "")).filter(id => /^\d+$/.test(id))
+      : [];
 
     if (!members.includes(memberId)) {
       reply.danger({
