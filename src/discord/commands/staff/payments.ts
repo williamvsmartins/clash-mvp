@@ -1,6 +1,6 @@
 import { Command } from "#base";
 import { ApplicationCommandType, ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
-import { verificarPagamentosPendentes, processarWebhookPagamento } from "#functions";
+import { checkPendingPayments, processPaymentWebhook } from "#functions";
 import { PixPayment } from "#database";
 
 new Command({
@@ -56,7 +56,7 @@ new Command({
         try {
             switch (subcommand) {
                 case "verificar": {
-                    await verificarPagamentosPendentes();
+                    await checkPendingPayments();
                     await interaction.editReply({
                         content: "✅ Verificação de pagamentos pendentes concluída! Verifique os logs para mais detalhes.",
                     });
@@ -65,7 +65,7 @@ new Command({
 
                 case "processar": {
                     const paymentId = interaction.options.getInteger("id", true);
-                    await processarWebhookPagamento(paymentId);
+                    await processPaymentWebhook(paymentId);
                     await interaction.editReply({
                         content: `✅ Pagamento #${paymentId} processado com sucesso!`,
                     });
@@ -88,7 +88,7 @@ new Command({
                     }
 
                     const lista = pagamentos.map(p => {
-                        const valorReais = (p.valor / 100).toFixed(2);
+                        const valorReais = (p.amount / 100).toFixed(2);
                         const statusEmoji = {
                             pending: "⏳",
                             approved: "✅",

@@ -1,5 +1,5 @@
 import { Responder, ResponderType } from "#base";
-import { reply, betMenu, getMoney, scheduleQueueNotification, cancelQueueNotification } from "#functions";
+import { reply, betMenu, getBalance, scheduleQueueNotification, cancelQueueNotification } from "#functions";
 import { PendingMatch } from "#database";
 import { ChannelType, PermissionFlagsBits, EmbedBuilder, TextChannel } from "discord.js";
 import { calcularPremio } from "#settings";
@@ -48,7 +48,7 @@ new Responder({
       return;
     }
 
-    const saldo = await getMoney(memberId);
+    const saldo = await getBalance(memberId);
 
     if (saldo < amountPayCents) {
       reply.danger({

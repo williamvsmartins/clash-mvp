@@ -1,102 +1,62 @@
-import { consultarPagamento } from '../mercadopago/service.js';
-import { deposito } from './money.js';
+import { getPayment } from '../mercadopago/service.js';
+import { creditDeposit } from './money.js';
 import { PixPayment } from '#database';
 import {
-    enviarDM,
-    criarEmbedPagamentoAprovado,
-    criarEmbedPagamentoExpirado,
-    criarEmbedPagamentoCancelado
+    sendDM,
+    buildDepositApprovedEmbed,
+    buildDepositExpiredEmbed,
+    buildDepositCancelledEmbed,
 } from '../discord/dm.js';
 
 
-export async function processarWebhookPagamento(paymentId: number) {
-    try {
-        const paymentData = await consultarPagamento(paymentId);
-        const pixPayment = await PixPayment.findOne({ mercadoPagoId: paymentId });
+export async function processPaymentWebhook(paymentId: number) {
+    const paymentData = await getPayment(paymentId);
+    const pixPayment = await PixPayment.findOne({ mercadoPagoId: paymentId });
 
-        if (!pixPayment) {
-            console.log(`Pagamento ${paymentId} não encontrado no banco de dados`);
-            return;
+    if (!pixPayment) return;
+
+    if (paymentData.status === 'approved') {
+        const claimed = await PixPayment.findOneAndUpdate(
+            { mercadoPagoId: paymentId, status: { $in: ['pending', 'in_progress'] } },
+            { status: 'approved' }
+        );
+
+        if (!claimed) return;
+
+        try {
+            await creditDeposit(pixPayment.userId, pixPayment.amount);
+        } catch (error) {
+            await PixPayment.findOneAndUpdate({ mercadoPagoId: paymentId }, { status: 'pending' });
+            throw error;
         }
 
-        if (paymentData.status === 'approved') {
-            // Marca como approved atomicamente — só prossegue se ainda estava pending.
-            // Isso garante idempotência: retries do Mercado Pago não creditam duas vezes.
-            const claimed = await PixPayment.findOneAndUpdate(
-                { mercadoPagoId: paymentId, status: { $in: ['pending', 'in_progress'] } },
-                { status: 'approved' }
-            );
+        await sendDM(pixPayment.userId, { embeds: [buildDepositApprovedEmbed(pixPayment.amount, paymentId)] });
 
-            if (!claimed) {
-                console.log(`Pagamento ${paymentId} já foi processado anteriormente`);
-                return;
-            }
+    } else if (paymentData.status === 'cancelled') {
+        await PixPayment.findOneAndUpdate({ mercadoPagoId: paymentId }, { status: 'cancelled' });
+        await sendDM(pixPayment.userId, { embeds: [buildDepositCancelledEmbed(pixPayment.amount, paymentId)] });
 
-            console.log(`✅ Pagamento ${paymentId} aprovado! Processando depósito...`);
-
-            try {
-                await deposito(pixPayment.userId, pixPayment.valor);
-            } catch (error) {
-                // Reverte o status para que o próximo retry possa tentar novamente
-                await PixPayment.findOneAndUpdate(
-                    { mercadoPagoId: paymentId },
-                    { status: 'pending' }
-                );
-                throw error;
-            }
-
-            console.log(`✅ Depósito de ${pixPayment.valor} centavos realizado para o usuário ${pixPayment.userId}`);
-
-            const embed = criarEmbedPagamentoAprovado(pixPayment.valor, paymentId);
-            await enviarDM(pixPayment.userId, { embeds: [embed] });
-
-        }
-        else if (paymentData.status === 'cancelled') {
-            await PixPayment.findOneAndUpdate(
-                { mercadoPagoId: paymentId },
-                { status: 'cancelled' }
-            );
-            console.log(`❌ Pagamento ${paymentId} cancelado`);
-
-            const embed = criarEmbedPagamentoCancelado(pixPayment.valor, paymentId);
-            await enviarDM(pixPayment.userId, { embeds: [embed] });
-        }
-        else if (paymentData.status === 'expired') {
-            await PixPayment.findOneAndUpdate(
-                { mercadoPagoId: paymentId },
-                { status: 'expired' }
-            );
-            console.log(`⏰ Pagamento ${paymentId} expirado`);
-
-            const embed = criarEmbedPagamentoExpirado(pixPayment.valor, paymentId);
-            await enviarDM(pixPayment.userId, { embeds: [embed] });
-        }
-    } catch (error) {
-        console.error('Erro ao processar webhook de pagamento:', error);
-        throw error;
+    } else if (paymentData.status === 'expired') {
+        await PixPayment.findOneAndUpdate({ mercadoPagoId: paymentId }, { status: 'expired' });
+        await sendDM(pixPayment.userId, { embeds: [buildDepositExpiredEmbed(pixPayment.amount, paymentId)] });
     }
 }
 
 
-export async function verificarPagamentosPendentes() {
+export async function checkPendingPayments() {
     try {
-        const pagamentosPendentes = await PixPayment.find({ status: 'pending' });
+        const pending = await PixPayment.find({ status: 'pending' });
 
-        for (const pagamento of pagamentosPendentes) {
-            const minutosDesdeCreacao = (Date.now() - pagamento.createdAt.getTime()) / 1000 / 60;
+        for (const payment of pending) {
+            const ageMinutes = (Date.now() - payment.createdAt.getTime()) / 60_000;
 
-            if (minutosDesdeCreacao > 15) {
-                await PixPayment.findByIdAndUpdate(pagamento._id, { status: 'expired' });
-                console.log(`Pagamento ${pagamento.mercadoPagoId} marcado como expirado`);
+            if (ageMinutes > 15) {
+                await PixPayment.findByIdAndUpdate(payment._id, { status: 'expired' });
             } else {
                 try {
-                    await processarWebhookPagamento(pagamento.mercadoPagoId);
-                } catch (error) {
-                    console.error(`Erro ao verificar pagamento ${pagamento.mercadoPagoId}:`, error);
-                }
+                    await processPaymentWebhook(payment.mercadoPagoId);
+                } catch { /* individual failure shouldn't stop the loop */ }
             }
         }
-    } catch (error) {
-        console.error('Erro ao verificar pagamentos pendentes:', error);
-    }
+    } catch { /* silently ignore loop-level errors */ }
 }

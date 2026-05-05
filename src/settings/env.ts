@@ -13,6 +13,8 @@ export const envSchema = z.object({
 
     // Mercado Pago
     MERCADO_PAGO_TOKEN: z.string().optional().default(""),
+    MERCADO_PAGO_PAYER_EMAIL: z.string().email().optional().default(""),
+    MERCADO_PAGO_PAYER_CPF: z.string().optional().default(""),
 
     // Webhook
     WEBHOOK_PORT: z.string().transform(Number).default("3000"),
@@ -39,6 +41,8 @@ declare global {
             MONGO_URI?: string;
             API_TOKEN?: string;
             MERCADO_PAGO_TOKEN?: string;
+            MERCADO_PAGO_PAYER_EMAIL?: string;
+            MERCADO_PAGO_PAYER_CPF?: string;
             WEBHOOK_PORT?: string;
             NOTION_API_KEY?: string;
             DATABASE_ID?: string;

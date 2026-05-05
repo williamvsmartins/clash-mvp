@@ -1,5 +1,5 @@
 import { Responder, ResponderType } from "#base";
-import { reply, cancelMatch, checkMatchResult, premio } from "#functions";
+import { reply, cancelMatch, checkMatchResult, creditPrize } from "#functions";
 import { ButtonStyle, ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "discord.js";
 import { Match } from "#database";
 import { deleteChannel } from "#functions";
@@ -51,8 +51,8 @@ new Responder({
                     // Reembolsa ambos os jogadores
                     if (verificationResult.price) {
                         await Promise.all([
-                            premio(verificationResult.player1UserId!, verificationResult.price),
-                            premio(verificationResult.player2UserId!, verificationResult.price)
+                            creditPrize(verificationResult.player1UserId!, verificationResult.price),
+                            creditPrize(verificationResult.player2UserId!, verificationResult.price)
                         ]);
                     }
 
@@ -93,7 +93,7 @@ new Responder({
                     // Premia o vencedor com o pote bruto — calcularPremio desconta o rake internamente
                     const poteBruto = verificationResult.price ? verificationResult.price * 2 : 0;
                     if (poteBruto) {
-                        await premio(verificationResult.winnerUserId, poteBruto);
+                        await creditPrize(verificationResult.winnerUserId, poteBruto);
                     }
 
                     // Registra no histórico
@@ -226,8 +226,8 @@ new Responder({
                     // Reembolsa ambos os jogadores
                     if (verificationResult.price) {
                         await Promise.all([
-                            premio(verificationResult.player1UserId!, verificationResult.price),
-                            premio(verificationResult.player2UserId!, verificationResult.price)
+                            creditPrize(verificationResult.player1UserId!, verificationResult.price),
+                            creditPrize(verificationResult.player2UserId!, verificationResult.price)
                         ]);
                     }
 
@@ -283,7 +283,7 @@ new Responder({
                     // Premia o vencedor com o pote bruto — calcularPremio desconta o rake internamente
                     const poteBrutoRetry = verificationResult.price ? verificationResult.price * 2 : 0;
                     if (poteBrutoRetry) {
-                        await premio(verificationResult.winnerUserId, poteBrutoRetry);
+                        await creditPrize(verificationResult.winnerUserId, poteBrutoRetry);
                     }
 
                     // Registra no histórico
@@ -418,8 +418,8 @@ new Responder({
             // Reembolsa ambos os jogadores
             if (result.player1UserId && result.player2UserId) {
                 await Promise.all([
-                    premio(result.player1UserId, result.price),
-                    premio(result.player2UserId, result.price)
+                    creditPrize(result.player1UserId, result.price),
+                    creditPrize(result.player2UserId, result.price)
                 ]);
             }
 

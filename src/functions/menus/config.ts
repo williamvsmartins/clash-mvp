@@ -181,7 +181,7 @@ export function configFinancialEmbed(config: GuildConfigData): EmbedBuilder {
         .addFields(
             {
                 name: '💸 Taxa de Depósito',
-                value: num(config.taxaDeposito, ' centavos'),
+                value: num(config.depositFee, ' centavos'),
                 inline: true,
             },
         )
@@ -192,7 +192,7 @@ export function configFinancialEmbed(config: GuildConfigData): EmbedBuilder {
 export function configFinancialRows(): ActionRowBuilder<ButtonBuilder>[] {
     const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
-            .setCustomId('config/edit/taxaDeposito')
+            .setCustomId('config/edit/depositFee')
             .setLabel('Editar Taxa de Depósito')
             .setEmoji('💸')
             .setStyle(ButtonStyle.Primary),
@@ -218,7 +218,7 @@ export function configOperationalEmbed(config: GuildConfigData): EmbedBuilder {
         .addFields(
             {
                 name: '⏳ Minutos de espera na fila',
-                value: num(config.minutosFila, ' min'),
+                value: num(config.queueWaitMinutes, ' min'),
                 inline: true,
             },
         )
@@ -229,7 +229,7 @@ export function configOperationalEmbed(config: GuildConfigData): EmbedBuilder {
 export function configOperationalRows(): ActionRowBuilder<ButtonBuilder>[] {
     const row1 = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
-            .setCustomId('config/edit/minutosFila')
+            .setCustomId('config/edit/queueWaitMinutes')
             .setLabel('Editar Minutos de Fila')
             .setEmoji('⏳')
             .setStyle(ButtonStyle.Primary),
@@ -255,6 +255,6 @@ export const FIELD_META: Record<string, { label: string; placeholder: string; is
     roleRegistered: { label: 'ID da Role Registrado',    placeholder: 'Ex: 123456789012345678' },
     roleStaff:      { label: 'ID da Role Staff',         placeholder: 'Ex: 123456789012345678' },
     roleAvailable:  { label: 'ID da Role Disponível',    placeholder: 'Ex: 123456789012345678' },
-    taxaDeposito:   { label: 'Taxa de depósito (centavos)', placeholder: 'Ex: 10', isNumber: true },
-    minutosFila:    { label: 'Minutos de espera na fila',   placeholder: 'Ex: 1',  isNumber: true },
+    depositFee:       { label: 'Taxa de depósito (centavos)', placeholder: 'Ex: 10', isNumber: true },
+    queueWaitMinutes: { label: 'Minutos de espera na fila',   placeholder: 'Ex: 1',  isNumber: true },
 };

@@ -1,90 +1,83 @@
 /**
- * Configurações centrais da plataforma ClashBet.
- * Todos os valores financeiros são em centavos (inteiros).
- * Altere aqui para ajustar o modelo de negócio sem tocar no resto do código.
- *
- * Plano de negócios base: 26/09/2024
- * Projeção otimista: R$ 1.206.720,00/ano com 5.000 duelos/dia
+ * Central platform configuration for ClashBet.
+ * All financial values are in centavos (integer).
+ * Change here to adjust the business model without touching the rest of the code.
  */
 
-// ─── Comissão da casa ────────────────────────────────────────────────────────
+// ─── House rake ──────────────────────────────────────────────────────────────
 
-/** Percentual retido pela plataforma sobre o pote total de cada partida (0–1). */
+/** Percentage retained by the platform from the total pot per match (0–1). */
 export const RAKE_RATE = 0.10; // 10%
 
-// ─── Sistema de escada ────────────────────────────────────────────────────────
+// ─── Bet ladder ───────────────────────────────────────────────────────────────
 
 /**
- * Níveis de aposta disponíveis.
- * `aposta` = valor por jogador (centavos).
- * `premio` = valor creditado ao vencedor (centavos) = pote total × (1 - RAKE_RATE).
+ * Available bet levels.
+ * `wager` = amount per player (centavos).
+ * `prize` = amount credited to winner (centavos) = total pot × (1 - RAKE_RATE).
  *
- * Regra da escada: prêmio do nível N ≥ aposta do nível N+1,
- * incentivando o vencedor a reinvestir no próximo nível.
+ * Ladder rule: prize of level N >= wager of level N+1,
+ * incentivising the winner to reinvest at the next level.
  */
-export const LADDER: Array<{ nivel: number; aposta: number; premio: number }> = [
-    { nivel: 1,  aposta:   50, premio:    90 }, // R$  0,50 → R$  0,90
-    { nivel: 2,  aposta:   90, premio:   162 }, // R$  0,90 → R$  1,62
-    { nivel: 3,  aposta:  160, premio:   288 }, // R$  1,60 → R$  2,88
-    { nivel: 4,  aposta:  280, premio:   504 }, // R$  2,80 → R$  5,04
-    { nivel: 5,  aposta:  500, premio:   900 }, // R$  5,00 → R$  9,00
-    { nivel: 6,  aposta:  900, premio:  1620 }, // R$  9,00 → R$ 16,20
-    { nivel: 7,  aposta: 1600, premio:  2880 }, // R$ 16,00 → R$ 28,80
-    { nivel: 8,  aposta: 2800, premio:  5040 }, // R$ 28,00 → R$ 50,40
-    { nivel: 9,  aposta: 5000, premio:  9000 }, // R$ 50,00 → R$ 90,00
-    { nivel: 10, aposta: 9000, premio: 16200 }, // R$ 90,00 → R$162,00
-    { nivel: 11, aposta:16000, premio: 28800 }, // R$160,00 → R$288,00
-    { nivel: 12, aposta:28000, premio: 50400 }, // R$280,00 → R$504,00
+export const LADDER: Array<{ level: number; wager: number; prize: number }> = [
+    { level:  1, wager:    50, prize:    90 }, // R$  0,50 → R$  0,90
+    { level:  2, wager:    90, prize:   162 }, // R$  0,90 → R$  1,62
+    { level:  3, wager:   160, prize:   288 }, // R$  1,60 → R$  2,88
+    { level:  4, wager:   280, prize:   504 }, // R$  2,80 → R$  5,04
+    { level:  5, wager:   500, prize:   900 }, // R$  5,00 → R$  9,00
+    { level:  6, wager:   900, prize:  1620 }, // R$  9,00 → R$ 16,20
+    { level:  7, wager:  1600, prize:  2880 }, // R$ 16,00 → R$ 28,80
+    { level:  8, wager:  2800, prize:  5040 }, // R$ 28,00 → R$ 50,40
+    { level:  9, wager:  5000, prize:  9000 }, // R$ 50,00 → R$ 90,00
+    { level: 10, wager:  9000, prize: 16200 }, // R$ 90,00 → R$162,00
+    { level: 11, wager: 16000, prize: 28800 }, // R$160,00 → R$288,00
+    { level: 12, wager: 28000, prize: 50400 }, // R$280,00 → R$504,00
 ];
 
-// ─── Bônus e engajamento ──────────────────────────────────────────────────────
+// ─── Bonuses & engagement ────────────────────────────────────────────────────
 
-/** Bônus de login diário (centavos). Suficiente para uma aposta no nível 1. */
-export const BONUS_LOGIN_DIARIO = 50; // R$ 0,50
+/** Daily login bonus (centavos). Enough for a free bet at level 1. */
+export const DAILY_LOGIN_BONUS = 50; // R$ 0,50
 
-/** Bônus pela primeira vitória do dia (centavos). */
-export const BONUS_PRIMEIRA_VITORIA = 25; // R$ 0,25
+/** First win of the day bonus (centavos). */
+export const FIRST_WIN_BONUS = 25; // R$ 0,25
 
 /**
- * Minutos sem adversário após o 1º jogador entrar na fila antes de notificar
- * os demais membros do servidor para chamar alguém para jogar.
- * Ajuste conforme o tempo médio de espera aceitável na sua plataforma.
+ * Minutes without an opponent after the 1st player joins the queue
+ * before alerting server members to find someone to play.
  */
 export const QUEUE_NOTIFY_AFTER_MINUTES = 1;
 
-// ─── Projeção de lucro (referência) ──────────────────────────────────────────
+// ─── Profit projection (reference only) ──────────────────────────────────────
 
 /**
- * Lucro médio por duelo (centavos).
- * Calculado com base na média ponderada dos níveis da escada.
- * Duelo padrão (nível 1): pote = R$1,00 → rake = R$0,10 → lucro R$0,10 por duelo... mas a
- * projeção do plano usa R$0,6704/duelo como média entre todos os níveis e volumes.
+ * Average profit per duel (centavos).
+ * Based on weighted average across ladder levels.
  *
- * Projeção estimada:
- *   100  duelos/dia →  R$    67,04/dia → R$  24.134,40/ano
- *   500  duelos/dia →  R$   335,20/dia → R$ 120.672,00/ano
- *  1000  duelos/dia →  R$   670,40/dia → R$ 241.344,00/ano
- *  2500  duelos/dia →  R$ 1.676,00/dia → R$ 603.360,00/ano
- *  5000  duelos/dia →  R$ 3.352,00/dia → R$1.206.720,00/ano
+ * Projected:
+ *    100 duels/day →  R$    67.04/day → R$  24,134.40/year
+ *    500 duels/day →  R$   335.20/day → R$ 120,672.00/year
+ *  1,000 duels/day →  R$   670.40/day → R$ 241,344.00/year
+ *  5,000 duels/day →  R$ 3,352.00/day → R$1,206,720.00/year
  */
-export const LUCRO_MEDIO_POR_DUELO_CENTAVOS = 6704; // R$ 67,04 / 100 duelos
+export const AVG_PROFIT_PER_DUEL_CENTS = 6704; // R$ 67.04 / 100 duels
 
-// ─── Sociedade ────────────────────────────────────────────────────────────────
+// ─── Partnership split ────────────────────────────────────────────────────────
 
-export const SOCIEDADE = {
-    socio1:    { participacao: 0.425, nome: 'Sócio Fundador 1' },
-    socio2:    { participacao: 0.425, nome: 'Sócio Fundador 2' },
-    novoSocio: { participacao: 0.150, nome: 'Novo Sócio'       },
+export const PARTNERSHIP = {
+    partner1:   { share: 0.425, name: 'Founding Partner 1' },
+    partner2:   { share: 0.425, name: 'Founding Partner 2' },
+    newPartner: { share: 0.150, name: 'New Partner'        },
 } as const;
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
 /**
- * Calcula o prêmio líquido (já com rake descontado) dado o pote bruto.
- * Use sempre esta função em vez de calcular manualmente.
+ * Calculates the net prize (after rake) given the gross pot.
+ * Always use this instead of computing manually.
  */
-export const calcularPremio = (pote: number): { premioVencedor: number; rakePlataforma: number } => {
-    const rakePlataforma = Math.floor(pote * RAKE_RATE);
-    const premioVencedor = pote - rakePlataforma;
+export const calcularPremio = (potCents: number): { premioVencedor: number; rakePlataforma: number } => {
+    const rakePlataforma = Math.floor(potCents * RAKE_RATE);
+    const premioVencedor = potCents - rakePlataforma;
     return { premioVencedor, rakePlataforma };
 };

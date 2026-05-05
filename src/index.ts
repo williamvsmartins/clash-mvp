@@ -1,6 +1,6 @@
 import { bootstrapApp } from "#base";
-import { iniciarServidorWebhook } from "./webhook/server.js";
-import { inicializarClientDM } from "#functions";
+import { startWebhookServer } from "./webhook/server.js";
+import { initDmClient } from "#functions";
 import { env } from "#settings";
 
 await bootstrapApp({
@@ -9,8 +9,8 @@ await bootstrapApp({
         guilds: env.GUILD_ID ? [env.GUILD_ID] : undefined,
     },
     whenReady(client) {
-        inicializarClientDM(client);
+        initDmClient(client);
     }
 });
 
-iniciarServidorWebhook();
+startWebhookServer();

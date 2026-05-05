@@ -19,8 +19,8 @@ const FIELD_CATEGORY: Record<string, 'channels' | 'roles' | 'financial' | 'opera
     roleRegistered: 'roles',
     roleStaff:      'roles',
     roleAvailable:  'roles',
-    taxaDeposito:   'financial',
-    minutosFila:    'operational',
+    depositFee:       'financial',
+    queueWaitMinutes: 'operational',
 };
 
 new Responder({

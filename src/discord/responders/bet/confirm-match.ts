@@ -1,7 +1,7 @@
 import { Responder, ResponderType } from "#base";
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, TextChannel } from "discord.js";
 import { Confirmation, User, PendingMatch } from "#database";
-import { descontoPartida, estornoPartida, createActiveMatch, getMoney } from "#functions";
+import { debitMatchFee, refundMatchFee, createActiveMatch, getBalance } from "#functions";
 import { calcularPremio } from "#settings";
 import { matchData } from "./queue.js";
 
@@ -69,8 +69,8 @@ new Responder({
 
             try {
                 const [saldo1, saldo2, player1, player2] = await Promise.all([
-                    getMoney(user1),
-                    getMoney(user2),
+                    getBalance(user1),
+                    getBalance(user2),
                     User.findOne({ userId: user1 }),
                     User.findOne({ userId: user2 }),
                 ]);
@@ -123,7 +123,7 @@ new Responder({
                     return;
                 }
 
-                await descontoPartida(user1, user2, priceInCents);
+                await debitMatchFee(user1, user2, priceInCents);
 
                 try {
                     await createActiveMatch({
@@ -139,16 +139,15 @@ new Responder({
                 } catch (error) {
                     // Débito já ocorreu — estorna antes de propagar
                     console.error('Erro ao criar partida ativa, estornando débito:', error);
-                    await estornoPartida(user1, user2, priceInCents);
+                    await refundMatchFee(user1, user2, priceInCents);
                     throw error;
                 }
 
                 await Confirmation.create({
                     channelId: channel.id,
-                    user1: user1,
-                    user2: user2,
+                    user1,
+                    user2,
                     messageId: interaction.message.id,
-                    date: new Date(),
                     price: Number(priceInCents),
                 });
 

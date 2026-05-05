@@ -1,5 +1,5 @@
 import { Schema } from "mongoose";
-import { t } from "../utils.js";
+import { schemaTypes as t } from "../utils.js";
 
 export const memberSchema = new Schema(
     {

@@ -13,7 +13,7 @@ export async function connectDatabase() {
 
 export * from './schemas/guild.js';
 export * from './schemas/user.js';
-export * from './schemas/confirmations.js';
+export * from './schemas/confirmation.js';
 export * from './schemas/match.js';
 export * from './schemas/Transaction.js';
 export * from './schemas/activeMatch.js';

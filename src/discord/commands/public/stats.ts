@@ -36,16 +36,16 @@ new Command({
             return;
         }
 
-        const wins = transactions.filter(t => t.type === 'premio').length;
-        const losses = transactions.filter(t => t.type === 'desconto').length;
+        const wins = transactions.filter(t => t.type === 'prize').length;
+        const losses = transactions.filter(t => t.type === 'match_debit').length;
         const totalMatches = wins + losses;
         const winRate = totalMatches > 0 ? ((wins / totalMatches) * 100).toFixed(1) : '0.0';
 
         const totalEarned = transactions
-            .filter(t => t.type === 'premio')
+            .filter(t => t.type === 'prize')
             .reduce((sum, t) => sum + t.amount, 0);
         const totalSpent = transactions
-            .filter(t => t.type === 'desconto')
+            .filter(t => t.type === 'match_debit')
             .reduce((sum, t) => sum + t.amount, 0);
         const netProfit = totalEarned - totalSpent;
 
@@ -54,8 +54,8 @@ new Command({
                 const txs = await Transaction.find({ userId: u.userId });
                 return {
                     userId: u.userId,
-                    wins: txs.filter(t => t.type === 'premio').length,
-                    moedas: u.moedas,
+                    wins: txs.filter(t => t.type === 'prize').length,
+                    balance: u.balance,
                 };
             })
         );

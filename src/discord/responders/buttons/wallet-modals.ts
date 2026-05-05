@@ -1,5 +1,5 @@
 import { Responder, ResponderType } from '#base';
-import { saque, getMoney, criarPagamentoPix, getGuildConfig } from '#functions';
+import { debitWithdrawal, getBalance, createPixPayment, getGuildConfig } from '#functions';
 import { gerarCodigoPix, saveDepositNotion } from '#functions';
 import { PixPayment } from '#database';
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
@@ -24,9 +24,9 @@ new Responder({
         const valorCentavos = Math.round(valorReais * 100);
 
         const config = await getGuildConfig(interaction.guildId!);
-        if (valorCentavos < 100 + config.taxaDeposito) {
+        if (valorCentavos < 100 + config.depositFee) {
             await interaction.reply({
-                content: `O valor deve ser maior ou igual a R$ ${((100 + config.taxaDeposito) / 100).toFixed(2)}.`,
+                content: `O valor deve ser maior ou igual a R$ ${((100 + config.depositFee) / 100).toFixed(2)}.`,
                 ephemeral: true,
             });
             return;
@@ -35,7 +35,7 @@ new Responder({
         await interaction.deferReply({ ephemeral: true });
 
         try {
-            const pixPayment = await criarPagamentoPix(
+            const pixPayment = await createPixPayment(
                 valorCentavos,
                 interaction.user.username,
                 interaction.user.id,
@@ -45,7 +45,7 @@ new Responder({
             await PixPayment.create({
                 userId: interaction.user.id,
                 mercadoPagoId: pixPayment.id,
-                valor: valorCentavos,
+                amount: valorCentavos,
                 status: 'pending',
                 qrCode: pixPayment.qrCode,
                 qrCodeBase64: pixPayment.qrCodeBase64,
@@ -69,42 +69,27 @@ new Responder({
                 .setTimestamp();
 
             try {
-                await interaction.user.send({
-                    embeds: [embed],
-                    files: [qrCodeAttachment],
-                });
-
-                await interaction.user.send({
-                    content: `${pixPayment.qrCode}`
-                });
-
+                await interaction.user.send({ embeds: [embed], files: [qrCodeAttachment] });
+                await interaction.user.send({ content: pixPayment.qrCode });
                 await interaction.followUp({
                     content: '✅ QR Code enviado no seu privado! Verifique suas mensagens diretas.',
                     ephemeral: true,
                 });
-            } catch (dmError) {
-                console.error('Não foi possível enviar DM:', dmError);
-
+            } catch {
                 const qrCodeBuffer2 = Buffer.from(pixPayment.qrCodeBase64, 'base64');
                 const qrCodeAttachment2 = new AttachmentBuilder(qrCodeBuffer2, { name: 'qrcode.png' });
-
                 await interaction.followUp({
                     content: '⚠️ Não foi possível enviar no privado. Aqui está seu QR Code (esta mensagem é visível apenas para você):',
                     embeds: [embed],
                     files: [qrCodeAttachment2],
                     ephemeral: true,
                 });
-
-                await interaction.followUp({
-                    content: `${pixPayment.qrCode}`,
-                    ephemeral: true,
-                });
+                await interaction.followUp({ content: pixPayment.qrCode, ephemeral: true });
             }
 
             await saveDepositNotion(interaction.user.id, valorCentavos);
 
-        } catch (error) {
-            console.error('Erro ao gerar pagamento PIX:', error);
+        } catch {
             await interaction.followUp({
                 content: '❌ Erro ao gerar o pagamento PIX. Tente novamente mais tarde ou entre em contato com o suporte.',
                 ephemeral: true,
@@ -143,11 +128,11 @@ new Responder({
         const valorReais = parseFloat(valorInput.replace(",", "."));
         const valorCentavos = Math.round(valorReais * 100);
 
-        const saldo = await getMoney(interaction.user.id);
+        const balance = await getBalance(interaction.user.id);
 
-        if (saldo <= 0 || valorCentavos > saldo) {
+        if (balance <= 0 || valorCentavos > balance) {
             await interaction.reply({
-                content: `Saldo insuficiente! Seu saldo atual é de R$ ${(saldo / 100).toFixed(2).replace('.', ',')}`,
+                content: `Saldo insuficiente! Seu saldo atual é de R$ ${(balance / 100).toFixed(2).replace('.', ',')}`,
                 ephemeral: true,
             });
             return;
@@ -164,9 +149,8 @@ new Responder({
         await interaction.deferReply({ ephemeral: true });
 
         try {
-            await saque(interaction.user.id, valorCentavos, pixKey);
-        } catch (error) {
-            console.error('Erro ao processar saque:', error);
+            await debitWithdrawal(interaction.user.id, valorCentavos, pixKey);
+        } catch {
             await interaction.followUp({
                 content: '❌ Erro ao processar o saque. Nenhum valor foi debitado. Entre em contato com o suporte.',
                 ephemeral: true,

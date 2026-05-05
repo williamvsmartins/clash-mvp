@@ -2,105 +2,102 @@ import { Transaction, User } from '#database';
 import { calcularPremio } from '#settings';
 import { saveNotion } from './notion.js';
 
-export const getMoney = async (userId: string): Promise<number> => {
+export const getBalance = async (userId: string): Promise<number> => {
     try {
         const user = await User.findOne({ userId });
-        return user?.moedas ?? 0;
-    } catch (error) {
-        console.error('Erro ao buscar saldo:', error);
+        return user?.balance ?? 0;
+    } catch {
         return 0;
     }
 };
 
-export const deposito = async (id: string, valor: number) => {
-    const user = await User.findOne({ userId: id });
-    if (!user) throw new Error(`Usuário ${id} não encontrado ao realizar depósito`);
-
-    user.moedas += valor;
-    await user.save();
-
-    await Transaction.create({
-        userId: id,
-        type: 'depósito',
-        amount: valor,
-        description: 'Depósito via PIX',
-    });
-};
-
-export const saque = async (id: string, valor: number, pix: string) => {
-    const user = await User.findOne({ userId: id });
-    if (!user) throw new Error(`Usuário ${id} não encontrado ao realizar saque`);
-
-    user.moedas -= valor;
-    await user.save();
-
-    await Transaction.create({
-        userId: id,
-        type: 'saque',
-        amount: -valor,
-        description: `Saque solicitado. PIX: ${pix || 'não informado'}`,
-    });
-
-    await saveNotion(id, pix || 'pix nao informado', valor);
-};
-
-export const descontoPartida = async (userId1: string, userId2: string, valor: number) => {
-    const [user1, user2] = await Promise.all([
-        User.findOne({ userId: userId1 }),
-        User.findOne({ userId: userId2 }),
-    ]);
-
-    if (!user1) throw new Error(`Usuário ${userId1} não encontrado ao aplicar desconto`);
-    if (!user2) throw new Error(`Usuário ${userId2} não encontrado ao aplicar desconto`);
-
-    user1.moedas -= valor;
-    user2.moedas -= valor;
-    await user1.save();
-    await user2.save();
-
-    await Transaction.create({
-        userId: userId1,
-        type: 'desconto',
-        amount: -valor,
-        description: 'Desconto para partida',
-    });
-
-    await Transaction.create({
-        userId: userId2,
-        type: 'desconto',
-        amount: -valor,
-        description: 'Desconto para partida',
-    });
-};
-
-export const estornoPartida = async (userId1: string, userId2: string, valor: number) => {
-    const [user1, user2] = await Promise.all([
-        User.findOne({ userId: userId1 }),
-        User.findOne({ userId: userId2 }),
-    ]);
-
-    if (user1) { user1.moedas += valor; await user1.save(); }
-    if (user2) { user2.moedas += valor; await user2.save(); }
-
-    const ops = [];
-    if (user1) ops.push(Transaction.create({ userId: userId1, type: 'estorno', amount: valor, description: 'Estorno — falha ao criar partida' }));
-    if (user2) ops.push(Transaction.create({ userId: userId2, type: 'estorno', amount: valor, description: 'Estorno — falha ao criar partida' }));
-    await Promise.all(ops);
-};
-
-export const premio = async (userId: string, pote: number) => {
+export const creditDeposit = async (userId: string, amountCents: number) => {
     const user = await User.findOne({ userId });
-    if (!user) throw new Error(`Usuário ${userId} não encontrado ao conceder prêmio`);
+    if (!user) throw new Error(`User ${userId} not found when crediting deposit`);
 
-    const { premioVencedor, rakePlataforma } = calcularPremio(pote);
-
-    user.moedas += premioVencedor;
+    user.balance += amountCents;
     await user.save();
 
     await Transaction.create({
         userId,
-        type: 'premio',
+        type: 'deposit',
+        amount: amountCents,
+        description: 'Deposit via PIX',
+    });
+};
+
+export const debitWithdrawal = async (userId: string, amountCents: number, pixKey: string) => {
+    const user = await User.findOne({ userId });
+    if (!user) throw new Error(`User ${userId} not found when debiting withdrawal`);
+
+    user.balance -= amountCents;
+    await user.save();
+
+    await Transaction.create({
+        userId,
+        type: 'withdrawal',
+        amount: -amountCents,
+        description: `Withdrawal requested. PIX key: ${pixKey || 'not provided'}`,
+    });
+
+    await saveNotion(userId, pixKey || 'pix not provided', amountCents);
+};
+
+export const debitMatchFee = async (userId1: string, userId2: string, amountCents: number) => {
+    const [user1, user2] = await Promise.all([
+        User.findOne({ userId: userId1 }),
+        User.findOne({ userId: userId2 }),
+    ]);
+
+    if (!user1) throw new Error(`User ${userId1} not found when debiting match fee`);
+    if (!user2) throw new Error(`User ${userId2} not found when debiting match fee`);
+
+    user1.balance -= amountCents;
+    user2.balance -= amountCents;
+    await user1.save();
+    await user2.save();
+
+    await Promise.all([
+        Transaction.create({ userId: userId1, type: 'match_debit', amount: -amountCents, description: 'Match fee debit' }),
+        Transaction.create({ userId: userId2, type: 'match_debit', amount: -amountCents, description: 'Match fee debit' }),
+    ]);
+};
+
+export const refundMatchFee = async (userId1: string, userId2: string, amountCents: number) => {
+    const [user1, user2] = await Promise.all([
+        User.findOne({ userId: userId1 }),
+        User.findOne({ userId: userId2 }),
+    ]);
+
+    const ops: Promise<unknown>[] = [];
+
+    if (user1) {
+        user1.balance += amountCents;
+        ops.push(user1.save());
+        ops.push(Transaction.create({ userId: userId1, type: 'refund', amount: amountCents, description: 'Refund — match creation failed' }));
+    }
+    if (user2) {
+        user2.balance += amountCents;
+        ops.push(user2.save());
+        ops.push(Transaction.create({ userId: userId2, type: 'refund', amount: amountCents, description: 'Refund — match creation failed' }));
+    }
+
+    await Promise.all(ops);
+};
+
+export const creditPrize = async (userId: string, potCents: number) => {
+    const user = await User.findOne({ userId });
+    if (!user) throw new Error(`User ${userId} not found when crediting prize`);
+
+    const { premioVencedor, rakePlataforma } = calcularPremio(potCents);
+
+    user.balance += premioVencedor;
+    await user.save();
+
+    await Transaction.create({
+        userId,
+        type: 'prize',
         amount: premioVencedor,
-        description: `Prêmio de partida vencida (rake: ${rakePlataforma} centavos)`,
+        description: `Match prize (platform rake: ${rakePlataforma} cents)`,
     });
 };

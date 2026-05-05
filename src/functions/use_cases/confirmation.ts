@@ -43,7 +43,7 @@ export const getUser2 = async (channelId: string) => {
 export const getDate = async (channelId: string) => {
     try {
         const channel = await Confirmation.findOne({ channelId });
-        return channel?.date || null;
+        return channel?.createdAt || null;
     } catch (error) {
         console.log(error);
         return null;

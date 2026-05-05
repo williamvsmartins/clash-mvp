@@ -1,14 +1,14 @@
 import { Guild } from '#database';
 
 export interface GuildConfigData {
-    channelQueue:   string;
-    channelAlerts:  string;
-    channelSupport: string;
-    roleRegistered: string;
-    roleStaff:      string;
-    roleAvailable:  string;
-    taxaDeposito:   number;
-    minutosFila:    number;
+    channelQueue:     string;
+    channelAlerts:    string;
+    channelSupport:   string;
+    roleRegistered:   string;
+    roleStaff:        string;
+    roleAvailable:    string;
+    depositFee:       number;
+    queueWaitMinutes: number;
 }
 
 export type GuildConfigField = keyof GuildConfigData;
@@ -18,14 +18,14 @@ const cache = new Map<string, GuildConfigData>();
 function docToConfig(doc: InstanceType<typeof Guild>): GuildConfigData {
     const d = doc as any;
     return {
-        channelQueue:   d.channelQueue   ?? '',
-        channelAlerts:  d.channelAlerts  ?? '',
-        channelSupport: d.channelSupport ?? '',
-        roleRegistered: d.roleRegistered ?? '',
-        roleStaff:      d.roleStaff      ?? '',
-        roleAvailable:  d.roleAvailable  ?? '',
-        taxaDeposito:   d.taxaDeposito   ?? 10,
-        minutosFila:    d.minutosFila    ?? 1,
+        channelQueue:     d.channelQueue     ?? '',
+        channelAlerts:    d.channelAlerts    ?? '',
+        channelSupport:   d.channelSupport   ?? '',
+        roleRegistered:   d.roleRegistered   ?? '',
+        roleStaff:        d.roleStaff        ?? '',
+        roleAvailable:    d.roleAvailable    ?? '',
+        depositFee:       d.depositFee       ?? 10,
+        queueWaitMinutes: d.queueWaitMinutes ?? 1,
     };
 }
 

@@ -54,7 +54,7 @@ export const scheduleQueueNotification = async (
     if (queueTimers.has(messageId)) return;
 
     const config = await getGuildConfig(guildId);
-    const delayMs = config.minutosFila * 60 * 1000;
+    const delayMs = config.queueWaitMinutes * 60 * 1000;
 
     const timer = setTimeout(async () => {
         queueTimers.delete(messageId);

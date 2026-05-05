@@ -1,6 +1,6 @@
 import { ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } from 'discord.js';
 import { Responder, ResponderType } from '#base';
-import { getMoney, getGuildConfig } from '#functions';
+import { getBalance, getGuildConfig } from '#functions';
 
 new Responder({
     customId: 'deposito',
@@ -8,7 +8,7 @@ new Responder({
     cache: 'cached',
     async run(interaction) {
         const config = await getGuildConfig(interaction.guildId!);
-        const minDeposit = ((100 + config.taxaDeposito) / 100).toFixed(2).replace('.', ',');
+        const minDeposit = ((100 + config.depositFee) / 100).toFixed(2).replace('.', ',');
 
         const modal = new ModalBuilder()
             .setCustomId('deposito_modal')
@@ -30,7 +30,7 @@ new Responder({
     type: ResponderType.Button,
     cache: 'cached',
     async run(interaction) {
-        const saldo = await getMoney(interaction.user.id);
+        const saldo = await getBalance(interaction.user.id);
         await interaction.reply({
             content: `Seu saldo atual é de R$ ${(saldo / 100).toFixed(2).replace('.', ',')}`,
             ephemeral
@@ -43,7 +43,7 @@ new Responder({
     type: ResponderType.Button,
     cache: 'cached',
     async run(interaction) {
-        const saldo = await getMoney(interaction.user.id);
+        const saldo = await getBalance(interaction.user.id);
 
         const modal = new ModalBuilder()
             .setCustomId('saque_modal')

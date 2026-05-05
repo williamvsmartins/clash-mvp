@@ -1,22 +1,22 @@
 import mongoose from 'mongoose';
 
-const guildSchema = new mongoose.Schema({
-    guildId:        { type: String, required: true, unique: true },
-    fixedMessageId: String,
+const guildSchema = new mongoose.Schema(
+    {
+        guildId:        { type: String, required: true, unique: true },
+        fixedMessageId: String,
 
-    // Canais
-    channelQueue:   String,
-    channelAlerts:  String,
-    channelSupport: String,
+        channelQueue:   String,
+        channelAlerts:  String,
+        channelSupport: String,
 
-    // Roles
-    roleRegistered: String,
-    roleStaff:      String,
-    roleAvailable:  String,
+        roleRegistered: String,
+        roleStaff:      String,
+        roleAvailable:  String,
 
-    // Parâmetros operacionais
-    taxaDeposito:   { type: Number, default: 10 },
-    minutosFila:    { type: Number, default: 1 },
-});
+        depositFee:     { type: Number, default: 10, min: 0, max: 10000 },
+        queueWaitMinutes: { type: Number, default: 1, min: 1, max: 60 },
+    },
+    { timestamps: true }
+);
 
 export const Guild = mongoose.model('Guild', guildSchema);

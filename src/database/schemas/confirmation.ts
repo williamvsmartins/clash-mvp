@@ -1,15 +1,16 @@
 import mongoose from 'mongoose';
 
-const pendingMatchSchema = new mongoose.Schema(
+const confirmationSchema = new mongoose.Schema(
     {
         channelId: { type: String, required: true, unique: true },
         user1:     { type: String, required: true },
         user2:     { type: String, required: true },
+        messageId: { type: String, required: true },
         price:     { type: Number, required: true, min: 1 },
     },
     { timestamps: true }
 );
 
-pendingMatchSchema.index({ createdAt: 1 }, { expireAfterSeconds: 7200 });
+confirmationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 86400 });
 
-export const PendingMatch = mongoose.model('PendingMatch', pendingMatchSchema);
+export const Confirmation = mongoose.model('Confirmation', confirmationSchema);
