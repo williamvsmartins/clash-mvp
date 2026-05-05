@@ -1,6 +1,6 @@
 import { Responder, ResponderType } from "#base";
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, TextChannel } from "discord.js";
-import { Confirmation } from "#database";
+import { Confirmation, User } from "#database";
 import { descontoPartida, createActiveMatch, getMoney } from "#functions";
 import { matchData } from "./queue.js";
 
@@ -67,10 +67,35 @@ new Responder({
             await interaction.deferUpdate();
 
             try {
-                const [saldo1, saldo2] = await Promise.all([
+                const [saldo1, saldo2, player1, player2] = await Promise.all([
                     getMoney(user1),
                     getMoney(user2),
+                    User.findOne({ userId: user1 }),
+                    User.findOne({ userId: user2 }),
                 ]);
+
+                if (!player1?.clashTag || !player2?.clashTag) {
+                    confirmations.delete(channelId);
+                    matchData.delete(channelId);
+
+                    const semTagEmbed = new EmbedBuilder()
+                        .setColor(0xFF0000)
+                        .setTitle('❌ Tag não registrada')
+                        .setDescription(
+                            `Um dos jogadores não possui tag do Clash Royale registrada.\n\n` +
+                            `Use o comando de registro antes de entrar em uma partida.\n\n` +
+                            `⏱️ Este canal será deletado em 30 segundos...`
+                        )
+                        .setFooter({ text: 'ClashBet' })
+                        .setTimestamp();
+
+                    await interaction.message.edit({ embeds: [semTagEmbed], components: [] });
+
+                    setTimeout(async () => {
+                        try { await channel.delete(); } catch {}
+                    }, 30000);
+                    return;
+                }
 
                 if (saldo1 < priceInCents || saldo2 < priceInCents) {
                     confirmations.delete(channelId);
@@ -152,8 +177,10 @@ new Responder({
                         channelId,
                         player1UserId: user1,
                         player2UserId: user2,
+                        player1Tag: player1.clashTag,
+                        player2Tag: player2.clashTag,
                         price: priceInCents,
-                        autoVerificationEnabled: true, // Habilita verificação automática
+                        autoVerificationEnabled: true,
                         timeoutMinutes: 30
                     });
                     

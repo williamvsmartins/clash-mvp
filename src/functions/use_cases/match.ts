@@ -1,5 +1,5 @@
 import { TextChannel } from "discord.js";
-import { ActiveMatch, User } from '#database';
+import { ActiveMatch } from '#database';
 import { verifyMatch, MatchVerificationData } from '../clash-royale/index.js';
 
 export const deleteChannel = async (channel: TextChannel) => {
@@ -20,27 +20,19 @@ export const createActiveMatch = async (data: {
     channelId: string;
     player1UserId: string;
     player2UserId: string;
+    player1Tag: string;
+    player2Tag: string;
     price: number;
     autoVerificationEnabled?: boolean;
     timeoutMinutes?: number;
 }) => {
     try {
-        // Busca as tags dos jogadores
-        const [player1, player2] = await Promise.all([
-            User.findOne({ userId: data.player1UserId }),
-            User.findOne({ userId: data.player2UserId })
-        ]);
-
-        if (!player1?.clashTag || !player2?.clashTag) {
-            throw new Error('Um ou ambos jogadores não possuem tag do Clash Royale registrada');
-        }
-
         const activeMatch = new ActiveMatch({
             channelId: data.channelId,
             player1UserId: data.player1UserId,
             player2UserId: data.player2UserId,
-            player1Tag: player1.clashTag,
-            player2Tag: player2.clashTag,
+            player1Tag: data.player1Tag,
+            player2Tag: data.player2Tag,
             price: data.price,
             startTime: new Date(),
             status: 'confirmed',
