@@ -81,7 +81,32 @@ All business parameters live in `src/settings/platform.ts`. **Never hardcode fin
 - **Projeção de lucro** — base: ~R$67,04/dia a cada 100 duelos; potencial de R$1.206.720,00/ano a 5.000 duelos/dia.
 - **Sociedade** — Sócio 1: 42,5% · Sócio 2: 42,5% · Novo Sócio: 15% (com meta de +10% futuro). Definido em `SOCIEDADE`.
 
-### Key Design Decisions
+### Code Standards & Contribution Rules
+
+These rules apply to every change — new features, bug fixes, and refactors alike.
+
+#### Separation of Responsibilities
+
+| Layer | Where | What belongs here |
+|---|---|---|
+| Configuration | `src/settings/platform.ts` | All tunable constants (rates, timeouts, bonuses). Never hardcode values elsewhere. |
+| Business logic | `src/functions/use_cases/` | Financial operations, match lifecycle, notifications, engagement logic. |
+| Helpers / menus | `src/functions/menus/` | Discord embed/component builders. Pure functions, no side effects. |
+| Interaction handlers | `src/discord/responders/` | Thin layer: validate input, call `#functions`, reply. No business logic inline. |
+| Commands | `src/discord/commands/` | Thin layer: parse options, call `#functions`, reply. No business logic inline. |
+| Events | `src/discord/events/` | Thin layer: react to Discord events, call `#functions`. |
+| Database models | `src/database/` | Mongoose schemas only. No query logic outside `#functions`. |
+
+#### Rules
+
+- **Responders and commands must stay thin.** If a handler is doing more than: (1) read interaction data, (2) call a function from `#functions`, (3) reply — extract the logic to `#functions` first.
+- **One file, one responsibility.** Each file in `src/functions/use_cases/` handles one domain (money, match, queue notifications, etc.). Do not mix domains in one file.
+- **All financial constants come from `platform.ts`.** Rake rate, bonus values, timeouts — never inline a number that represents a business rule.
+- **Follow the framework patterns.** Use `new Command()`, `new Event()`, `new Responder()` — never invent alternative registration mechanisms.
+- **`npm run check` must pass before any commit.** No TypeScript errors or unused import warnings.
+- **Exports go through index files.** New functions in `src/functions/use_cases/` must be re-exported from `src/functions/index.ts`. New settings exports from `src/settings/index.ts`.
+
+#### Key Design Decisions
 
 - **Money is stored in centavos (integer)** — always divide by 100 for display. Never store floats. `User.moedas` defaults to `0` (not `0.0`).
 - **All financial functions throw on error** — `deposito`, `saque`, `descontoPartida`, `estornoPartida`, `premio` all propagate errors. Only `getMoney` swallows errors (returns 0 as safe fallback for reads). Callers must handle errors and inform the user.
