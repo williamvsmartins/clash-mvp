@@ -163,7 +163,16 @@ new Responder({
 
         await interaction.deferReply({ ephemeral: true });
 
-        await saque(interaction.user.id, valorCentavos, pixKey);
+        try {
+            await saque(interaction.user.id, valorCentavos, pixKey);
+        } catch (error) {
+            console.error('Erro ao processar saque:', error);
+            await interaction.followUp({
+                content: '❌ Erro ao processar o saque. Nenhum valor foi debitado. Entre em contato com o suporte.',
+                ephemeral: true,
+            });
+            return;
+        }
 
         await interaction.followUp({
             content: `Saque de R$ ${(valorCentavos / 100).toFixed(2).replace('.', ',')} solicitado com sucesso! O valor será transferido para ${pixKey} em até 24h.`,

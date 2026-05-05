@@ -34,7 +34,16 @@ export async function processarWebhookPagamento(paymentId: number) {
 
             console.log(`✅ Pagamento ${paymentId} aprovado! Processando depósito...`);
 
-            await deposito(pixPayment.userId, pixPayment.valor);
+            try {
+                await deposito(pixPayment.userId, pixPayment.valor);
+            } catch (error) {
+                // Reverte o status para que o próximo retry possa tentar novamente
+                await PixPayment.findOneAndUpdate(
+                    { mercadoPagoId: paymentId },
+                    { status: 'pending' }
+                );
+                throw error;
+            }
 
             console.log(`✅ Depósito de ${pixPayment.valor} centavos realizado para o usuário ${pixPayment.userId}`);
 

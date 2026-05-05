@@ -12,90 +12,77 @@ export const getMoney = async (userId: string): Promise<number> => {
 };
 
 export const deposito = async (id: string, valor: number) => {
-    try {
-        const user = await User.findOne({ userId: id });
-        if (user) {
-            user.moedas += valor;
-            await user.save();
+    const user = await User.findOne({ userId: id });
+    if (!user) throw new Error(`Usuário ${id} não encontrado ao realizar depósito`);
 
-            await Transaction.create({
-                userId: id,
-                type: 'depósito',
-                amount: valor,
-                description: 'Depósito via PIX',
-            });
-        }
-    } catch (error) {
-        console.log('Erro ao realizar depósito:', error);
-    }
+    user.moedas += valor;
+    await user.save();
+
+    await Transaction.create({
+        userId: id,
+        type: 'depósito',
+        amount: valor,
+        description: 'Depósito via PIX',
+    });
 };
 
 export const saque = async (id: string, valor: number, pix: string) => {
-    try {
-        const user = await User.findOne({ userId: id });
-        if (user) {
-            user.moedas -= valor;
-            await user.save();
+    const user = await User.findOne({ userId: id });
+    if (!user) throw new Error(`Usuário ${id} não encontrado ao realizar saque`);
 
-            await Transaction.create({
-                userId: id,
-                type: 'saque',
-                amount: -valor,
-                description: `Saque solicitado. PIX: ${pix || 'não informado'}`,
-            });
+    user.moedas -= valor;
+    await user.save();
 
-            await saveNotion(id, pix || 'pix nao informado', valor);
-        }
-    } catch (error) {
-        console.log('Erro ao realizar saque:', error);
-    }
+    await Transaction.create({
+        userId: id,
+        type: 'saque',
+        amount: -valor,
+        description: `Saque solicitado. PIX: ${pix || 'não informado'}`,
+    });
+
+    await saveNotion(id, pix || 'pix nao informado', valor);
 };
 
 export const descontoPartida = async (userId1: string, userId2: string, valor: number) => {
-    try {
-        const user1 = await User.findOne({ userId: userId1 });
-        const user2 = await User.findOne({ userId: userId2 });
+    const [user1, user2] = await Promise.all([
+        User.findOne({ userId: userId1 }),
+        User.findOne({ userId: userId2 }),
+    ]);
 
-        if (user1 && user2) {
-            user1.moedas -= valor;
-            user2.moedas -= valor;
-            await user1.save();
-            await user2.save();
+    if (!user1) throw new Error(`Usuário ${userId1} não encontrado ao aplicar desconto`);
+    if (!user2) throw new Error(`Usuário ${userId2} não encontrado ao aplicar desconto`);
 
-            await Transaction.create({
-                userId: userId1,
-                type: 'desconto',
-                amount: -valor,
-                description: 'Desconto para partida',
-            });
+    user1.moedas -= valor;
+    user2.moedas -= valor;
+    await user1.save();
+    await user2.save();
 
-            await Transaction.create({
-                userId: userId2,
-                type: 'desconto',
-                amount: -valor,
-                description: 'Desconto para partida',
-            });
-        }
-    } catch (error) {
-        console.log('Erro ao aplicar desconto:', error);
-    }
+    await Transaction.create({
+        userId: userId1,
+        type: 'desconto',
+        amount: -valor,
+        description: 'Desconto para partida',
+    });
+
+    await Transaction.create({
+        userId: userId2,
+        type: 'desconto',
+        amount: -valor,
+        description: 'Desconto para partida',
+    });
 };
 
 export const premio = async (userId: string, valor: number) => {
-    try {
-        const user = await User.findOne({ userId });
-        if (user) {
-            user.moedas += valor;
-            await user.save();
+    const user = await User.findOne({ userId });
+    if (!user) throw new Error(`Usuário ${userId} não encontrado ao conceder prêmio`);
 
-            await Transaction.create({
-                userId: userId,
-                type: 'premio',
-                amount: valor,
-                description: 'Prêmio de partida vencida',
-            });
-        }
-    } catch (error) {
-        console.log('Erro ao conceder prêmio:', error);
-    }
+    user.moedas += valor;
+    await user.save();
+
+    await Transaction.create({
+        userId,
+        type: 'premio',
+        amount: valor,
+        description: 'Prêmio de partida vencida',
+    });
 };
