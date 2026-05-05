@@ -9,7 +9,7 @@ import {
     ButtonStyle,
 } from 'discord.js';
 import { User, ActiveMatch } from '#database';
-import { getClashPlayer } from 'functions/clash-royale/getPlayer.js';
+import { getClashPlayer } from '#functions';
 
 new Responder({
     customId: 'add_tag',

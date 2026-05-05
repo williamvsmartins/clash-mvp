@@ -182,5 +182,6 @@ export const getVerificationStatus = () =>
 export * from './service.js';
 export * from './rules.js';
 export * from './mock.js';
+export * from './getPlayer.js';
 
 // Mock é ativado explicitamente via /clash-test — nunca automaticamente.
