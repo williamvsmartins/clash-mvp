@@ -53,22 +53,19 @@ export const createActiveMatch = async (data: {
  */
 export const checkMatchResult = async (channelId: string) => {
     try {
-        const activeMatch = await ActiveMatch.findOne({ channelId });
+        // Tenta adquirir lock atômico: só avança se status ainda for confirmed/in_progress.
+        // Isso previne double-payout quando dois cliques simultâneos chegam ao mesmo tempo.
+        const activeMatch = await ActiveMatch.findOneAndUpdate(
+            { channelId, status: { $in: ['confirmed', 'in_progress'] } },
+            { $inc: { verificationAttempts: 1 }, lastVerificationAttempt: new Date(), status: 'in_progress' },
+            { new: true }
+        );
 
         if (!activeMatch) {
-            return { success: false, error: 'Partida não encontrada' };
-        }
-
-        if (activeMatch.status !== 'confirmed' && activeMatch.status !== 'in_progress') {
+            const exists = await ActiveMatch.findOne({ channelId });
+            if (!exists) return { success: false, error: 'Partida não encontrada' };
             return { success: false, error: 'Partida não está em andamento' };
         }
-
-        // Atualiza tentativas de verificação atomicamente para evitar race condition
-        await ActiveMatch.findOneAndUpdate(
-            { channelId },
-            { $inc: { verificationAttempts: 1 }, lastVerificationAttempt: new Date() }
-        );
-        activeMatch.verificationAttempts += 1;
 
         const verificationData: MatchVerificationData = {
             player1Tag: activeMatch.player1Tag,
@@ -118,6 +115,9 @@ export const checkMatchResult = async (channelId: string) => {
             };
         }
 
+        // Partida não encontrada ainda — volta para confirmed para permitir retries
+        await ActiveMatch.updateOne({ channelId }, { status: 'confirmed' });
+
         return {
             success: false,
             error: result.error || 'Partida ainda não finalizada ou não encontrada',
@@ -125,6 +125,11 @@ export const checkMatchResult = async (channelId: string) => {
         };
 
     } catch (error) {
+        // Em caso de erro inesperado, tenta liberar o lock
+        await ActiveMatch.updateOne(
+            { channelId, status: 'in_progress' },
+            { status: 'confirmed' }
+        ).catch(() => {});
         console.error('Erro ao verificar resultado da partida:', error);
         return { success: false, error: 'Erro interno na verificação' };
     }

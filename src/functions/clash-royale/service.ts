@@ -243,7 +243,7 @@ export class ClashRoyaleService {
             // Define o período de busca
             const maxTime = new Date(matchStartTime.getTime() + (timeoutMinutes * 60 * 1000));
             const now = new Date();
-            
+
             if (now < maxTime) {
                 // Se ainda não passou o tempo limite, busca batalhas recentes
                 const [player1Battles, player2Battles] = await Promise.all([
@@ -251,16 +251,30 @@ export class ClashRoyaleService {
                     this.getBattleLog(player2Tag)
                 ]);
 
+                // A API do Clash Royale retorna battleTime no formato "20240101T120000.000Z"
+                // que o JS não parseia corretamente. Converte para ISO 8601 antes de comparar.
+                const parseBattleTime = (raw: string): Date => {
+                    // "20240101T120000.000Z" → "2024-01-01T12:00:00.000Z"
+                    const iso = raw.replace(
+                        /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/,
+                        '$1-$2-$3T$4:$5:$6'
+                    );
+                    return new Date(iso);
+                };
+
                 // Filtra batalhas dentro do período válido
                 const validBattles1 = player1Battles.filter(battle => {
-                    const battleTime = new Date(battle.battleTime);
+                    const battleTime = parseBattleTime(battle.battleTime);
                     return battleTime >= matchStartTime && battleTime <= maxTime;
                 });
 
                 const validBattles2 = player2Battles.filter(battle => {
-                    const battleTime = new Date(battle.battleTime);
+                    const battleTime = parseBattleTime(battle.battleTime);
                     return battleTime >= matchStartTime && battleTime <= maxTime;
                 });
+
+                console.log(`[verifyMatch] player1 battles total: ${player1Battles.length}, válidas: ${validBattles1.length}`);
+                console.log(`[verifyMatch] player2 battles total: ${player2Battles.length}, válidas: ${validBattles2.length}`);
 
                 // Procura por uma batalha em comum
                 const commonBattle = this.findCommonBattle(

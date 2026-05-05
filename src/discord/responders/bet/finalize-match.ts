@@ -22,21 +22,21 @@ new Responder({
         try {
             const channelId = channel.id;
 
-            // Busca os dados da partida ativa
-            const activeMatchData = await checkMatchResult(channelId);
-
-            if (!activeMatchData.success) {
-                await interaction.followUp({
-                    content: `❌ ${activeMatchData.error}`,
-                    ephemeral: true
-                });
+            // Valida que quem clicou é um dos jogadores da partida
+            const { ActiveMatch } = await import('#database');
+            const activeMatchDoc = await ActiveMatch.findOne({ channelId, status: { $in: ['confirmed', 'in_progress'] } });
+            if (!activeMatchDoc) {
+                await interaction.editReply({ content: "❌ Partida não encontrada ou já finalizada." });
+                return;
+            }
+            const userId = interaction.user.id;
+            if (userId !== activeMatchDoc.player1UserId && userId !== activeMatchDoc.player2UserId) {
+                await interaction.editReply({ content: "❌ Apenas os jogadores da partida podem finalizá-la." });
                 return;
             }
 
-            // VERIFICAÇÃO OBRIGATÓRIA VIA API
-            await interaction.followUp({
+            await interaction.editReply({
                 content: "🔍 **Checando vencedor...**\nPor favor, aguarde...",
-                ephemeral: true
             });
 
             const verificationResult = await checkMatchResult(channelId);

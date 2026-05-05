@@ -1,5 +1,14 @@
 import { MatchResult } from './service.js';
 
+export const VALID_GAME_MODES = new Set([
+    'Ladder',
+    'Classic Challenge',
+    'Grand Challenge',
+    'Friendly Battle',
+    'Tournament',
+    'PvP',
+]);
+
 export interface MatchRule {
     name: string;
     description: string;
@@ -115,6 +124,22 @@ export class MatchRuleEngine {
             }
         });
 
+        // Regra 2b: Consistência de trophyChange — o vencedor não pode ter trophyChange < 0
+        // Aplica apenas quando a API retorna trophyChange (modo Ladder); ignora se ausente.
+        this.addRule({
+            name: 'TROPHY_CHANGE_CONSISTENCY',
+            description: 'Mudança de troféus deve ser consistente com o resultado (vencedor não perde troféus)',
+            priority: 85,
+            validator: (result) => {
+                if (!result.winner) return true;
+                const winner = result.winner === result.player1.tag ? result.player1 : result.player2;
+                const loser  = result.winner === result.player1.tag ? result.player2 : result.player1;
+                if (winner.trophyChange !== null && winner.trophyChange < 0) return false;
+                if (loser.trophyChange !== null && loser.trophyChange > 0) return false;
+                return true;
+            }
+        });
+
         // Regra 3: Pelo menos um jogador deve ter pelo menos 1 coroa
         this.addRule({
             name: 'MIN_ONE_CROWN',
@@ -125,26 +150,12 @@ export class MatchRuleEngine {
             }
         });
 
-        // Regra 4: Modo de jogo deve ser válido para apostas
+        // Regra 4: Modo de jogo deve ser válido para apostas (correspondência exata)
         this.addRule({
             name: 'VALID_GAME_MODE',
             description: 'Modo de jogo deve ser válido para apostas',
             priority: 70,
-            validator: (result) => {
-                const validModes = [
-                    'Ladder',
-                    'Classic Challenge',
-                    'Grand Challenge',
-                    'Friendly Battle',
-                    'Tournament',
-                    'PvP'
-                ];
-                
-                // Verifica se o modo de jogo contém algum dos modos válidos
-                return validModes.some(mode => 
-                    result.gameMode.toLowerCase().includes(mode.toLowerCase())
-                );
-            }
+            validator: (result) => VALID_GAME_MODES.has(result.gameMode)
         });
 
         // Regra 5: Máximo de coroas deve ser respeitado (máximo 3 por jogador)
