@@ -1,6 +1,7 @@
 import { ApplicationCommandType, ChannelType, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { Command } from '#base';
 import { getGuildConfig } from '#functions';
+import { calcularPremio } from '#settings';
 
 new Command({
   name: 'fila',
@@ -46,7 +47,9 @@ new Command({
     });
 
     const amountPay = valor + (config.taxaDeposito / 100);
-    const amountReceive = valor * 2;
+    const poteBruto = valor * 2 * 100; // centavos
+    const { premioVencedor } = calcularPremio(poteBruto);
+    const amountReceive = premioVencedor / 100; // reais
 
     const embed = new EmbedBuilder()
       .setColor('#0099ff')

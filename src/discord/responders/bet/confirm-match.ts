@@ -2,6 +2,7 @@ import { Responder, ResponderType } from "#base";
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, TextChannel } from "discord.js";
 import { Confirmation, User, PendingMatch } from "#database";
 import { descontoPartida, estornoPartida, createActiveMatch, getMoney } from "#functions";
+import { calcularPremio } from "#settings";
 import { matchData } from "./queue.js";
 
 const confirmations = new Map<string, Set<string>>();
@@ -151,6 +152,9 @@ new Responder({
                     price: Number(priceInCents),
                 });
 
+                const { premioVencedor } = calcularPremio(priceInCents * 2);
+                const fmt = (cents: number) => `R$ ${(cents / 100).toFixed(2).replace('.', ',')}`;
+
                 const confirmedEmbed = new EmbedBuilder()
                     .setColor(0x00FF00)
                     .setTitle('✅ Partida Confirmada!')
@@ -158,7 +162,8 @@ new Responder({
                         `**Jogadores:**\n` +
                         `<@${user1}> ✅\n` +
                         `<@${user2}> ✅\n\n` +
-                        `**Valor Descontado:** R$ ${(priceInCents / 100).toFixed(2).replace('.', ',')}\n\n` +
+                        `**Valor Descontado:** ${fmt(priceInCents)} por jogador\n` +
+                        `**Prêmio do Vencedor:** ${fmt(premioVencedor)}\n\n` +
                         `🎮 **Agora vocês podem jogar!**\n\n` +
                         `📎 **Envie o link de amizade do Clash Royale aqui:**\n` +
                         `Formato: \`https://link.clashroyale.com/invite/friend/...\`\n\n` +
@@ -186,7 +191,7 @@ new Responder({
 
                 await channel.send({
                     content: `🎉 **Partida confirmada por ambos os jogadores!**\n\n` +
-                        `💰 Valor de R$ ${(priceInCents / 100).toFixed(2).replace('.', ',')} foi descontado de cada jogador.\n` +
+                        `💰 ${fmt(priceInCents)} descontado de cada jogador — prêmio: **${fmt(premioVencedor)}**\n` +
                         `⚔️ **Que comece a batalha!**\n\n` +
                         `Envie o link de amizade abaixo para iniciar a partida.`
                 });

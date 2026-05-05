@@ -3,6 +3,7 @@ import { reply, cancelMatch, checkMatchResult, premio } from "#functions";
 import { ButtonStyle, ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "discord.js";
 import { Match } from "#database";
 import { deleteChannel } from "#functions";
+import { calcularPremio } from "#settings";
 
 new Responder({
     customId: "Finalizar",
@@ -89,9 +90,10 @@ new Responder({
                 if (verificationResult.winner && verificationResult.winnerUserId) {
                     const winnerMention = `<@${verificationResult.winnerUserId}>`;
 
-                    // Premia o vencedor com o dobro do valor apostado
-                    if (verificationResult.price) {
-                        await premio(verificationResult.winnerUserId, verificationResult.price * 2);
+                    // Premia o vencedor com o pote bruto — calcularPremio desconta o rake internamente
+                    const poteBruto = verificationResult.price ? verificationResult.price * 2 : 0;
+                    if (poteBruto) {
+                        await premio(verificationResult.winnerUserId, poteBruto);
                     }
 
                     // Registra no histórico
@@ -103,7 +105,7 @@ new Responder({
                     });
                     await matchRecord.save();
 
-                    const prizeAmount = verificationResult.price ? verificationResult.price * 2 : 0;
+                    const { premioVencedor } = calcularPremio(poteBruto);
 
                     // Embed de resultado verificado
                     const resultEmbed = new EmbedBuilder()
@@ -114,7 +116,7 @@ new Responder({
                             `**⚔️ Resultado:** ${verificationResult.result?.player1.crowns} x ${verificationResult.result?.player2.crowns}\n` +
                             `**🎮 Modo:** ${verificationResult.result?.gameMode}\n` +
                             `**🏟️ Arena:** ${verificationResult.result?.arena}\n` +
-                            `**💰 Prêmio:** R$ ${(prizeAmount / 100).toFixed(2).replace('.', ',')}\n\n` +
+                            `**💰 Prêmio:** R$ ${(premioVencedor / 100).toFixed(2).replace('.', ',')}\n\n` +
                             `✅ **Resultado confirmado via API oficial do Clash Royale!**`
                         )
                         .setFooter({ text: `Verificação: ${verificationResult.validation?.appliedRule || 'API_VALIDATION'}` })
@@ -278,9 +280,10 @@ new Responder({
                 if (verificationResult.winner && verificationResult.winnerUserId) {
                     const winnerMention = `<@${verificationResult.winnerUserId}>`;
 
-                    // Premia o vencedor com o dobro do valor apostado
-                    if (verificationResult.price) {
-                        await premio(verificationResult.winnerUserId, verificationResult.price * 2);
+                    // Premia o vencedor com o pote bruto — calcularPremio desconta o rake internamente
+                    const poteBrutoRetry = verificationResult.price ? verificationResult.price * 2 : 0;
+                    if (poteBrutoRetry) {
+                        await premio(verificationResult.winnerUserId, poteBrutoRetry);
                     }
 
                     // Registra no histórico
@@ -292,7 +295,7 @@ new Responder({
                     });
                     await matchRecord.save();
 
-                    const prizeAmount = verificationResult.price ? verificationResult.price * 2 : 0;
+                    const { premioVencedor: premioRetry } = calcularPremio(poteBrutoRetry);
 
                     const successEmbed = new EmbedBuilder()
                         .setColor(0x00FF00)
@@ -302,7 +305,7 @@ new Responder({
                             `**⚔️ Resultado:** ${verificationResult.result?.player1.crowns} x ${verificationResult.result?.player2.crowns}\n` +
                             `**🎮 Modo:** ${verificationResult.result?.gameMode}\n` +
                             `**🏟️ Arena:** ${verificationResult.result?.arena}\n` +
-                            `**💰 Prêmio:** R$ ${(prizeAmount / 100).toFixed(2).replace('.', ',')}\n\n` +
+                            `**💰 Prêmio:** R$ ${(premioRetry / 100).toFixed(2).replace('.', ',')}\n\n` +
                             `✅ **Partida verificada com sucesso na tentativa ${verificationResult.attempts || 1}!**`
                         )
                         .setFooter({ text: 'Verificação Obrigatória - Sucesso' })

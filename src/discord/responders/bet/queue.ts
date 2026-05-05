@@ -2,6 +2,7 @@ import { Responder, ResponderType } from "#base";
 import { reply, betMenu, getMoney, scheduleQueueNotification, cancelQueueNotification } from "#functions";
 import { PendingMatch } from "#database";
 import { ChannelType, PermissionFlagsBits, EmbedBuilder, TextChannel } from "discord.js";
+import { calcularPremio } from "#settings";
 
 export const matchData = new Map<string, {
   user1: string;
@@ -142,6 +143,7 @@ new Responder({
           price: amountPayCents,
         });
 
+        const { premioVencedor } = calcularPremio(amountPayCents * 2);
         const matchEmbed = new EmbedBuilder()
           .setColor(0x00FF00)
           .setTitle('🎮 Partida Criada!')
@@ -149,7 +151,7 @@ new Responder({
             `**Jogadores:**\n` +
             `<@${user1}> VS <@${user2}>\n\n` +
             `**Valor da Aposta:** R$ ${(amountPayCents / 100).toFixed(2).replace('.', ',')}\n` +
-            `**Valor do Prêmio:** R$ ${(amountPayCents * 2 / 100).toFixed(2).replace('.', ',')}\n\n` +
+            `**Prêmio do Vencedor:** R$ ${(premioVencedor / 100).toFixed(2).replace('.', ',')}\n\n` +
             `⚠️ **Ambos os jogadores devem clicar em "Aceitar" para confirmar a partida!**\n\n` +
             `Após a confirmação, vocês poderão enviar o link do Clash Royale.`
           )
