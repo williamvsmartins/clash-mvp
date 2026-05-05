@@ -98,10 +98,10 @@ new Responder({
 
                     // Registra no histórico
                     const matchRecord = new Match({
-                        channelId: channelId,
-                        match: `${verificationResult.result?.player1.name} vs ${verificationResult.result?.player2.name}`,
-                        winner: verificationResult.winnerUserId,
-                        date: new Date().toISOString()
+                        channelId,
+                        player1Name: verificationResult.result?.player1.name,
+                        player2Name: verificationResult.result?.player2.name,
+                        winnerUserId: verificationResult.winnerUserId,
                     });
                     await matchRecord.save();
 
@@ -288,10 +288,10 @@ new Responder({
 
                     // Registra no histórico
                     const matchRecord = new Match({
-                        channelId: channelId,
-                        match: `${verificationResult.result?.player1.name} vs ${verificationResult.result?.player2.name}`,
-                        winner: verificationResult.winnerUserId,
-                        date: new Date().toISOString()
+                        channelId,
+                        player1Name: verificationResult.result?.player1.name,
+                        player2Name: verificationResult.result?.player2.name,
+                        winnerUserId: verificationResult.winnerUserId,
                     });
                     await matchRecord.save();
 

@@ -5,6 +5,7 @@ export const VALID_GAME_MODES = new Set([
     'Classic Challenge',
     'Grand Challenge',
     'Friendly Battle',
+    'Friendly',
     'Tournament',
     'PvP',
 ]);

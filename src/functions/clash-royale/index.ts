@@ -48,10 +48,10 @@ class MatchVerificationService {
                 // Usa o serviço mock
                 result = await mockClashRoyaleService.verifyMatch(data.player1Tag, data.player2Tag);
             } else {
-                // Usa a API real
+                // Usa a API real — preserva o timeoutMinutes do match se fornecido
                 result = await clashRoyaleService.verifyMatch({
                     ...data,
-                    timeoutMinutes: this.config.timeoutMinutes
+                    timeoutMinutes: data.timeoutMinutes ?? this.config.timeoutMinutes
                 });
             }
 
@@ -183,7 +183,4 @@ export * from './service.js';
 export * from './rules.js';
 export * from './mock.js';
 
-// Configuração automática baseada no ambiente
-if (process.env.NODE_ENV === 'development') {
-    configureVerification({ useMock: true });
-}
+// Mock é ativado explicitamente via /clash-test — nunca automaticamente.
