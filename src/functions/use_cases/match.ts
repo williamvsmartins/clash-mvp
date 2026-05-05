@@ -1,6 +1,7 @@
 import { TextChannel } from "discord.js";
-import { ActiveMatch } from '#database';
+import { ActiveMatch, MatchLog } from '#database';
 import { verifyMatch, MatchVerificationData } from '../clash-royale/index.js';
+import type { MatchLogOutcome } from '#database';
 
 export const deleteChannel = async (channel: TextChannel) => {
     try {
@@ -214,6 +215,51 @@ export const getActiveMatchesForVerification = async () => {
     } catch (error) {
         console.error('Erro ao buscar partidas para verificação:', error);
         return [];
+    }
+};
+
+export const saveMatchLog = async (
+    channel: TextChannel,
+    data: {
+        player1UserId: string;
+        player2UserId: string;
+        price: number;
+        outcome: MatchLogOutcome;
+        winnerUserId?: string | null;
+    }
+): Promise<InstanceType<typeof MatchLog> | null> => {
+    try {
+        const fetched = await channel.messages.fetch({ limit: 100 });
+        const sorted = [...fetched.values()].sort((a, b) => a.createdTimestamp - b.createdTimestamp);
+
+        const messages = sorted.map(m => ({
+            authorId:   m.author.id,
+            authorName: m.author.username,
+            content:    m.content,
+            embeds:     m.embeds.map(e => ({
+                title:       e.title,
+                description: e.description,
+                fields:      e.fields,
+                footer:      e.footer?.text,
+                timestamp:   e.timestamp,
+            })),
+            timestamp: m.createdAt,
+        }));
+
+        const log = await MatchLog.create({
+            channelId:    channel.id,
+            player1UserId: data.player1UserId,
+            player2UserId: data.player2UserId,
+            price:         data.price,
+            outcome:       data.outcome,
+            winnerUserId:  data.winnerUserId ?? null,
+            messages,
+        });
+
+        return log;
+    } catch (error) {
+        console.error('Erro ao salvar log da partida:', error);
+        return null;
     }
 };
 

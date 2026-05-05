@@ -19,3 +19,4 @@ export * from './schemas/Transaction.js';
 export * from './schemas/activeMatch.js';
 export * from './schemas/pixPayment.js';
 export * from './schemas/pendingMatch.js';
+export * from './schemas/matchLog.js';

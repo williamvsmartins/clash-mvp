@@ -1,9 +1,36 @@
 import { Responder, ResponderType } from "#base";
-import { reply, cancelMatch, checkMatchResult, creditPrize } from "#functions";
+import { reply, cancelMatch, checkMatchResult, creditPrize, saveMatchLog, sendDM } from "#functions";
 import { ButtonStyle, ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "discord.js";
 import { Match } from "#database";
 import { deleteChannel } from "#functions";
 import { calcularPremio } from "#settings";
+
+function buildMatchResultDM(opts: {
+    outcome: 'win' | 'loss' | 'draw' | 'cancelled';
+    opponentName: string;
+    priceCents: number;
+    prizeCents?: number;
+    logId: string;
+}): EmbedBuilder {
+    const priceStr = (opts.priceCents / 100).toFixed(2).replace('.', ',');
+    const prizeStr = opts.prizeCents ? (opts.prizeCents / 100).toFixed(2).replace('.', ',') : null;
+
+    const map = {
+        win:       { color: 0x00FF00 as number, title: '🏆 Você venceu a partida!',   desc: `Você ganhou contra **${opts.opponentName}**.\n💰 Prêmio recebido: **R$ ${prizeStr}**` },
+        loss:      { color: 0xFF4444 as number, title: '😔 Você perdeu a partida.',   desc: `Você perdeu para **${opts.opponentName}**.` },
+        draw:      { color: 0xFFAA00 as number, title: '🤝 Partida empatada!',        desc: `Empate com **${opts.opponentName}**.\n💰 Reembolso: **R$ ${priceStr}**` },
+        cancelled: { color: 0xFF0000 as number, title: '❌ Partida cancelada.',        desc: `A partida com **${opts.opponentName}** foi cancelada.\n💰 Reembolso: **R$ ${priceStr}**` },
+    } as const;
+
+    const { color, title, desc } = map[opts.outcome];
+
+    return new EmbedBuilder()
+        .setColor(color)
+        .setTitle(title)
+        .setDescription(`${desc}\n\n🆔 ID do log: \`${opts.logId}\``)
+        .setFooter({ text: 'ClashBet • Resultado da Partida' })
+        .setTimestamp();
+}
 
 new Responder({
     customId: "Finalizar",
@@ -78,6 +105,21 @@ new Responder({
                         content: "🤝 **Partida empatada!** Valores reembolsados para ambos os jogadores."
                     });
 
+                    // Salva log e envia DMs antes de deletar
+                    const drawLog = await saveMatchLog(channel as any, {
+                        player1UserId: verificationResult.player1UserId!,
+                        player2UserId: verificationResult.player2UserId!,
+                        price: verificationResult.price!,
+                        outcome: 'draw',
+                    });
+                    if (drawLog) {
+                        const logId = (drawLog._id as any).toString();
+                        await Promise.allSettled([
+                            sendDM(verificationResult.player1UserId!, { embeds: [buildMatchResultDM({ outcome: 'draw', opponentName: verificationResult.result?.player2.name ?? 'Oponente', priceCents: verificationResult.price!, logId })] }),
+                            sendDM(verificationResult.player2UserId!, { embeds: [buildMatchResultDM({ outcome: 'draw', opponentName: verificationResult.result?.player1.name ?? 'Oponente', priceCents: verificationResult.price!, logId })] }),
+                        ]);
+                    }
+
                     // Agenda exclusão do canal
                     setTimeout(async () => {
                         await deleteChannel(channel as any);
@@ -129,6 +171,30 @@ new Responder({
                     await interaction.editReply({
                         content: "✅ **Partida finalizada com sucesso!** Resultado verificado na API do Clash Royale."
                     });
+
+                    const activeDoc = await (await import('#database')).ActiveMatch.findOne({ channelId });
+                    const loser = activeDoc?.player1UserId === verificationResult.winnerUserId
+                        ? activeDoc?.player2UserId
+                        : activeDoc?.player1UserId;
+
+                    const winLog = await saveMatchLog(channel as any, {
+                        player1UserId: activeDoc?.player1UserId ?? verificationResult.winnerUserId!,
+                        player2UserId: activeDoc?.player2UserId ?? loser ?? '',
+                        price: verificationResult.price!,
+                        outcome: 'finished',
+                        winnerUserId: verificationResult.winnerUserId,
+                    });
+                    if (winLog) {
+                        const logId = (winLog._id as any).toString();
+                        const p1Name = verificationResult.result?.player1.name ?? 'Oponente';
+                        const p2Name = verificationResult.result?.player2.name ?? 'Oponente';
+                        const opponentOfWinner = verificationResult.winnerUserId === activeDoc?.player1UserId ? p2Name : p1Name;
+                        const opponentOfLoser   = verificationResult.winnerUserId === activeDoc?.player1UserId ? p1Name : p2Name;
+                        await Promise.allSettled([
+                            sendDM(verificationResult.winnerUserId!, { embeds: [buildMatchResultDM({ outcome: 'win', opponentName: opponentOfWinner, priceCents: verificationResult.price!, prizeCents: premioVencedor, logId })] }),
+                            loser ? sendDM(loser, { embeds: [buildMatchResultDM({ outcome: 'loss', opponentName: opponentOfLoser, priceCents: verificationResult.price!, logId })] }) : Promise.resolve(),
+                        ]);
+                    }
 
                     // Agenda exclusão do canal
                     setTimeout(async () => {
@@ -268,6 +334,21 @@ new Responder({
                         });
                     }
 
+                    // Salva log e envia DMs antes de deletar
+                    const retryDrawLog = await saveMatchLog(channel as any, {
+                        player1UserId: verificationResult.player1UserId!,
+                        player2UserId: verificationResult.player2UserId!,
+                        price: verificationResult.price!,
+                        outcome: 'draw',
+                    });
+                    if (retryDrawLog) {
+                        const logId = (retryDrawLog._id as any).toString();
+                        await Promise.allSettled([
+                            sendDM(verificationResult.player1UserId!, { embeds: [buildMatchResultDM({ outcome: 'draw', opponentName: verificationResult.result?.player2.name ?? 'Oponente', priceCents: verificationResult.price!, logId })] }),
+                            sendDM(verificationResult.player2UserId!, { embeds: [buildMatchResultDM({ outcome: 'draw', opponentName: verificationResult.result?.player1.name ?? 'Oponente', priceCents: verificationResult.price!, logId })] }),
+                        ]);
+                    }
+
                     // Agenda exclusão do canal
                     setTimeout(async () => {
                         await deleteChannel(channel as any);
@@ -329,6 +410,30 @@ new Responder({
                             embeds: failMessage.embeds,
                             components: []
                         });
+                    }
+
+                    // Salva log e envia DMs antes de deletar
+                    const retryActiveDoc = await (await import('#database')).ActiveMatch.findOne({ channelId });
+                    const retryLoser = retryActiveDoc?.player1UserId === verificationResult.winnerUserId
+                        ? retryActiveDoc?.player2UserId
+                        : retryActiveDoc?.player1UserId;
+                    const retryWinLog = await saveMatchLog(channel as any, {
+                        player1UserId: retryActiveDoc?.player1UserId ?? verificationResult.winnerUserId!,
+                        player2UserId: retryActiveDoc?.player2UserId ?? retryLoser ?? '',
+                        price: verificationResult.price!,
+                        outcome: 'finished',
+                        winnerUserId: verificationResult.winnerUserId,
+                    });
+                    if (retryWinLog) {
+                        const logId = (retryWinLog._id as any).toString();
+                        const rp1Name = verificationResult.result?.player1.name ?? 'Oponente';
+                        const rp2Name = verificationResult.result?.player2.name ?? 'Oponente';
+                        const retryOpponentOfWinner = verificationResult.winnerUserId === retryActiveDoc?.player1UserId ? rp2Name : rp1Name;
+                        const retryOpponentOfLoser   = verificationResult.winnerUserId === retryActiveDoc?.player1UserId ? rp1Name : rp2Name;
+                        await Promise.allSettled([
+                            sendDM(verificationResult.winnerUserId!, { embeds: [buildMatchResultDM({ outcome: 'win', opponentName: retryOpponentOfWinner, priceCents: verificationResult.price!, prizeCents: premioRetry, logId })] }),
+                            retryLoser ? sendDM(retryLoser, { embeds: [buildMatchResultDM({ outcome: 'loss', opponentName: retryOpponentOfLoser, priceCents: verificationResult.price!, logId })] }) : Promise.resolve(),
+                        ]);
                     }
 
                     // Agenda exclusão do canal
@@ -443,6 +548,23 @@ new Responder({
                 content: "✅ Partida cancelada e valores reembolsados.",
                 ephemeral: true
             });
+
+            // Salva log e envia DMs antes de deletar
+            if (result.player1UserId && result.player2UserId) {
+                const cancelLog = await saveMatchLog(channel as any, {
+                    player1UserId: result.player1UserId,
+                    player2UserId: result.player2UserId,
+                    price: result.price,
+                    outcome: 'cancelled',
+                });
+                if (cancelLog) {
+                    const logId = (cancelLog._id as any).toString();
+                    await Promise.allSettled([
+                        sendDM(result.player1UserId, { embeds: [buildMatchResultDM({ outcome: 'cancelled', opponentName: 'Oponente', priceCents: result.price, logId })] }),
+                        sendDM(result.player2UserId, { embeds: [buildMatchResultDM({ outcome: 'cancelled', opponentName: 'Oponente', priceCents: result.price, logId })] }),
+                    ]);
+                }
+            }
 
             // Agenda exclusão do canal
             setTimeout(async () => {
