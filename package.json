@@ -9,8 +9,8 @@
     "dev:dev": "tsx --env-file .env.dev ./src/index.ts",
     "watch": "tsx --watch --env-file .env ./src/index.ts",
     "watch:dev": "tsx --watch --env-file .env.dev ./src/index.ts",
-    "start": "node --env-file .env ./build/index.js",
-    "start:dev": "node --env-file .env.dev ./build/index.js",
+    "start": "dotenv -e .env -- node ./build/index.js",
+    "start:dev": "dotenv -e .env.dev -- node ./build/index.js",
     "up": "docker compose up -d"
   },
   "dependencies": {
@@ -34,6 +34,7 @@
     "@types/node": "^20.16.11",
     "@types/qr-image": "^3.2.9",
     "@types/uuid": "^10.0.0",
+    "dotenv-cli": "^7.4.4",
     "tsx": "4.8.0",
     "typescript": "^5.6.3"
   },
