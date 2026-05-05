@@ -1,6 +1,5 @@
 import { ApplicationCommandType, ChannelType, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { Command } from '#base';
-import { getGuildConfig } from '#functions';
 import { calcularPremio } from '#settings';
 
 new Command({
@@ -38,15 +37,12 @@ new Command({
       return;
     }
 
-    const config = await getGuildConfig(interaction.guildId!);
-
     const currencyFormatter = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
       minimumFractionDigits: 2,
     });
 
-    const amountPay = valor + (config.taxaDeposito / 100);
     const poteBruto = valor * 2 * 100; // centavos
     const { premioVencedor } = calcularPremio(poteBruto);
     const amountReceive = premioVencedor / 100; // reais
@@ -58,7 +54,7 @@ new Command({
       .addFields([
         {
           name: 'Valor',
-          value: `${currencyFormatter.format(amountPay)} / ${currencyFormatter.format(amountReceive)}`
+          value: `${currencyFormatter.format(valor)} / ${currencyFormatter.format(amountReceive)}`
         },
         {
           name: 'Jogadores',
