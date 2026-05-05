@@ -1,14 +1,16 @@
 import { bootstrapApp } from "#base";
 import { iniciarServidorWebhook } from "./webhook/server.js";
 import { inicializarClientDM } from "#functions";
+import { env } from "#settings";
 
 await bootstrapApp({
     workdir: import.meta.dirname,
+    commands: {
+        guilds: env.GUILD_ID ? [env.GUILD_ID] : undefined,
+    },
     whenReady(client) {
-        // Inicializa o client para envio de DMs quando o bot estiver pronto
         inicializarClientDM(client);
     }
 });
 
-// Inicia o servidor de webhooks
 iniciarServidorWebhook();

@@ -2,6 +2,7 @@ import axios from 'axios';
 import { Responder, ResponderType } from '#base';
 import { User } from '#database';
 import { env } from '#settings';
+import { getGuildConfig } from '#functions';
 
 new Responder({
     customId: 'clash_tag_modal',
@@ -34,12 +35,13 @@ new Responder({
                 ephemeral: true
             });
 
-            if (env.REGISTERED_ROLE_ID && guild) {
-                const role = guild.roles.cache.find(r => r.id === env.REGISTERED_ROLE_ID);
-                if (role) {
-                    const member = guild.members.cache.get(userId);
-                    if (member) {
-                        await member.roles.add(role);
+            if (guild) {
+                const config = await getGuildConfig(guild.id);
+                if (config.roleRegistered) {
+                    const role = guild.roles.cache.find(r => r.id === config.roleRegistered);
+                    if (role) {
+                        const member = guild.members.cache.get(userId);
+                        if (member) await member.roles.add(role);
                     }
                 }
             }

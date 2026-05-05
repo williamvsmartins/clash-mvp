@@ -204,7 +204,7 @@ new Responder({
 
     // 1º jogador entrou — agendar alerta no canal dedicado caso ninguém entre em breve
     if (members.length === 1 && message.channel.isTextBased() && 'send' in message.channel) {
-      scheduleQueueNotification(interaction.client, message.channel as TextChannel, message.id, memberId, amountPayCents);
+      void scheduleQueueNotification(interaction.client, message.channel as TextChannel, message.id, memberId, amountPayCents, interaction.guildId!);
     }
   },
 });

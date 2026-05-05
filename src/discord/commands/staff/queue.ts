@@ -1,11 +1,13 @@
-import { ApplicationCommandType, ChannelType, EmbedBuilder } from 'discord.js';
+import { ApplicationCommandType, ChannelType, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { Command } from '#base';
-import { env } from '#settings';
+import { getGuildConfig } from '#functions';
 
 new Command({
   name: 'fila',
   description: 'Cria nova fila de apostas',
   type: ApplicationCommandType.ChatInput,
+  dmPermission: false,
+  defaultMemberPermissions: PermissionFlagsBits.ManageGuild,
   options: [
     {
       name: 'valor',
@@ -25,21 +27,17 @@ new Command({
     const channelOption = interaction.options.getChannel('canal', true);
 
     if (channelOption.type !== ChannelType.GuildText) {
-      await interaction.reply({
-        content: 'Por favor, selecione um canal de texto!',
-        ephemeral: true
-      });
+      await interaction.reply({ content: 'Por favor, selecione um canal de texto!', ephemeral });
       return;
     }
 
     const channel = await interaction.guild!.channels.fetch(channelOption.id);
     if (!channel || !channel.isTextBased()) {
-      await interaction.reply({
-        content: 'Canal inválido!',
-        ephemeral: true
-      });
+      await interaction.reply({ content: 'Canal inválido!', ephemeral });
       return;
     }
+
+    const config = await getGuildConfig(interaction.guildId!);
 
     const currencyFormatter = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -47,7 +45,7 @@ new Command({
       minimumFractionDigits: 2,
     });
 
-    const amountPay = valor + (env.RATE / 100);
+    const amountPay = valor + (config.taxaDeposito / 100);
     const amountReceive = valor * 2;
 
     const embed = new EmbedBuilder()
@@ -74,26 +72,13 @@ new Command({
         {
           type: 1,
           components: [
-            {
-              type: 2,
-              style: 1,
-              label: 'Entrar na Fila',
-              customId: 'bet/queue/enter_bet'
-            },
-            {
-              type: 2,
-              style: 4,
-              label: 'Sair da Fila',
-              customId: 'bet/queue/leave_bet'
-            }
+            { type: 2, style: 1, label: 'Entrar na Fila', customId: 'bet/queue/enter_bet' },
+            { type: 2, style: 4, label: 'Sair da Fila',   customId: 'bet/queue/leave_bet' }
           ]
         }
       ]
     });
 
-    await interaction.reply({
-      content: 'Fila enviada com sucesso!',
-      ephemeral: true
-    });
+    await interaction.reply({ content: 'Fila enviada com sucesso!', ephemeral });
   }
 });

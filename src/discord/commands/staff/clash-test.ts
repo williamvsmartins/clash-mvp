@@ -1,5 +1,5 @@
 import { Command } from '#base';
-import { ApplicationCommandType, ApplicationCommandOptionType, EmbedBuilder } from 'discord.js';
+import { ApplicationCommandType, ApplicationCommandOptionType, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
 import { 
     configureVerification, 
     getVerificationStatus, 
@@ -14,6 +14,8 @@ new Command({
     name: 'clash-test',
     description: 'Comandos para testar a verificação de partidas do Clash Royale',
     type: ApplicationCommandType.ChatInput,
+    dmPermission: false,
+    defaultMemberPermissions: PermissionFlagsBits.Administrator,
     options: [
         {
             name: 'acao',

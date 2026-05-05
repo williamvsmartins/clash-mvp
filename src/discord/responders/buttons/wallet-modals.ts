@@ -1,8 +1,7 @@
 import { Responder, ResponderType } from '#base';
-import { saque, getMoney, criarPagamentoPix } from '#functions';
+import { saque, getMoney, criarPagamentoPix, getGuildConfig } from '#functions';
 import { gerarCodigoPix, saveDepositNotion } from '#functions';
 import { PixPayment } from '#database';
-import { env } from '#settings';
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 
 new Responder({
@@ -24,9 +23,10 @@ new Responder({
         const valorReais = parseFloat(valorInput.replace(",", "."));
         const valorCentavos = Math.round(valorReais * 100);
 
-        if (valorCentavos < 100 + env.RATE) {
+        const config = await getGuildConfig(interaction.guildId!);
+        if (valorCentavos < 100 + config.taxaDeposito) {
             await interaction.reply({
-                content: `O valor deve ser maior ou igual a R$ ${((100 + env.RATE) / 100).toFixed(2)}.`,
+                content: `O valor deve ser maior ou igual a R$ ${((100 + config.taxaDeposito) / 100).toFixed(2)}.`,
                 ephemeral: true,
             });
             return;

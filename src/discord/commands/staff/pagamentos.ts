@@ -1,5 +1,5 @@
 import { Command } from "#base";
-import { ApplicationCommandType, ApplicationCommandOptionType } from "discord.js";
+import { ApplicationCommandType, ApplicationCommandOptionType, PermissionFlagsBits } from "discord.js";
 import { verificarPagamentosPendentes, processarWebhookPagamento } from "#functions";
 import { PixPayment } from "#database";
 
@@ -7,6 +7,7 @@ new Command({
     name: "pagamentos",
     description: "Gerenciar pagamentos PIX",
     dmPermission: false,
+    defaultMemberPermissions: PermissionFlagsBits.Administrator,
     type: ApplicationCommandType.ChatInput,
     options: [
         {
