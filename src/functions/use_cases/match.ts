@@ -63,10 +63,12 @@ export const checkMatchResult = async (channelId: string) => {
             return { success: false, error: 'Partida não está em andamento' };
         }
 
-        // Atualiza tentativas de verificação
+        // Atualiza tentativas de verificação atomicamente para evitar race condition
+        await ActiveMatch.findOneAndUpdate(
+            { channelId },
+            { $inc: { verificationAttempts: 1 }, lastVerificationAttempt: new Date() }
+        );
         activeMatch.verificationAttempts += 1;
-        activeMatch.lastVerificationAttempt = new Date();
-        await activeMatch.save();
 
         const verificationData: MatchVerificationData = {
             player1Tag: activeMatch.player1Tag,
