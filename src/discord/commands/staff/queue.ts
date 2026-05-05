@@ -1,5 +1,6 @@
-import { ApplicationCommandType, ChannelType, EmbedBuilder, PermissionFlagsBits } from 'discord.js';
+import { ApplicationCommandType, ChannelType, PermissionFlagsBits } from 'discord.js';
 import { Command } from '#base';
+import { betMenu } from '#functions';
 import { calcularPremio } from '#settings';
 
 new Command({
@@ -37,46 +38,10 @@ new Command({
       return;
     }
 
-    const currencyFormatter = new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      minimumFractionDigits: 2,
-    });
+    const amountPayCents = valor * 100;
+    const { premioVencedor } = calcularPremio(amountPayCents * 2);
 
-    const poteBruto = valor * 2 * 100; // centavos
-    const { premioVencedor } = calcularPremio(poteBruto);
-    const amountReceive = premioVencedor / 100; // reais
-
-    const embed = new EmbedBuilder()
-      .setColor('#0099ff')
-      .setTitle('1v1 Clássico | Fila de Competição')
-      .setDescription(`Formato\n1v1 Clássico\n\n`)
-      .addFields([
-        {
-          name: 'Valor',
-          value: `${currencyFormatter.format(valor)} / ${currencyFormatter.format(amountReceive)}`
-        },
-        {
-          name: 'Jogadores',
-          value: 'Nenhum jogador na fila \n\n',
-          inline: false
-        },
-      ])
-      .setThumbnail('https://cdn.discordapp.com/attachments/1276274460449575021/1276275081722593359/clashBet.jpg')
-      .setFooter({ text: 'ClashBet' });
-
-    await channel.send({
-      embeds: [embed],
-      components: [
-        {
-          type: 1,
-          components: [
-            { type: 2, style: 1, label: 'Entrar na Fila', customId: 'bet/queue/enter_bet' },
-            { type: 2, style: 4, label: 'Sair da Fila',   customId: 'bet/queue/leave_bet' }
-          ]
-        }
-      ]
-    });
+    await channel.send(betMenu(amountPayCents, premioVencedor));
 
     await interaction.reply({ content: 'Fila enviada com sucesso!', ephemeral });
   }

@@ -30,46 +30,27 @@ new Responder({
     const memberId = member.id;
 
     if (members.includes(memberId)) {
-      reply.danger({
-        interaction,
-        text: "Você já está na fila!"
-      });
+      reply.danger({ interaction, text: "Você já está na fila!" });
       return;
     }
 
-    const valorField = message.embeds[0]?.fields[0]?.value || "R$ 0,00 / R$ 0,00";
+    const valorField = message.embeds[0]?.fields?.[0]?.value ?? "R$ 0,00 / R$ 0,00";
+    const parts = valorField.split(" / ").map(v => v.trim());
 
-    const [amountPayStr, amountReceiveStr] = valorField
-      .split(" / ")
-      .map(v => v.trim());
+    const toFloat = (s: string) =>
+      parseFloat(s.replace(/[^\d,]/g, '').replace(',', '.'));
 
-    const cleanedAmountPay = amountPayStr
-      .replace(/[^\d,.-]/g, '')
-      .replace(/\./g, '')
-      .replace(',', '.');
-
-
-    const amountPayCents = Math.round(parseFloat(cleanedAmountPay) * 100);
+    const amountPayCents = Math.round(toFloat(parts[0] ?? "0") * 100);
+    const amountReceiveCents = Math.round(toFloat(parts[1] ?? "0") * 100);
 
     if (isNaN(amountPayCents) || amountPayCents <= 0) {
-      console.error('❌ Erro ao converter valor:', {
-        valorField,
-        amountPayStr,
-        cleanedAmountPay,
-        amountPayCents
-      });
-
-      reply.danger({
-        interaction,
-        text: "Erro ao processar o valor da aposta. Entre em contato com o suporte."
-      });
+      reply.danger({ interaction, text: "Erro ao processar o valor da aposta. Entre em contato com o suporte." });
       return;
     }
 
     const saldo = await getMoney(memberId);
 
     if (saldo < amountPayCents) {
-      // if (saldo < 0) {
       reply.danger({
         interaction,
         text: `Saldo insuficiente! Seu saldo atual é de R$ ${(saldo / 100).toFixed(2).replace('.', ',')}`
@@ -82,76 +63,37 @@ new Responder({
     if (members.length >= 2) {
       const [user1, user2] = members;
 
-      // 2º jogador entrou — cancelar notificação pendente desta fila
       cancelQueueNotification(message.id);
 
       try {
-        // Remove R$ dos valores antes de passar para betMenu
-        const cleanedAmountReceive = amountReceiveStr
-          .replace(/[^\d,.-]/g, '')
-          .replace(/\./g, '')
-          .replace(',', '.');
-
-        await interaction.update(betMenu(cleanedAmountPay, cleanedAmountReceive, []));
+        await interaction.update(betMenu(amountPayCents, amountReceiveCents, []));
 
         const timestamp = Date.now().toString().slice(-6);
         const channel = await guild!.channels.create({
           name: `aposta-${timestamp}`,
           type: ChannelType.GuildText,
           permissionOverwrites: [
-            {
-              id: guild!.roles.everyone,
-              deny: [PermissionFlagsBits.ViewChannel],
-            },
-            {
-              id: user1,
-              allow: [
-                PermissionFlagsBits.ViewChannel,
-                PermissionFlagsBits.SendMessages,
-                PermissionFlagsBits.ReadMessageHistory,
-              ],
-            },
-            {
-              id: user2,
-              allow: [
-                PermissionFlagsBits.ViewChannel,
-                PermissionFlagsBits.SendMessages,
-                PermissionFlagsBits.ReadMessageHistory,
-              ],
-            },
+            { id: guild!.roles.everyone, deny: [PermissionFlagsBits.ViewChannel] },
+            { id: user1, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] },
+            { id: user2, allow: [PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.ReadMessageHistory] },
           ],
         });
 
-        console.log('💾 Salvando dados da partida:', {
-          channelId: channel.id,
-          user1,
-          user2,
-          price: amountPayCents,
-          priceInReais: (amountPayCents / 100).toFixed(2)
-        });
+        matchData.set(channel.id, { user1, user2, price: amountPayCents });
 
-        matchData.set(channel.id, {
-          user1,
-          user2,
-          price: amountPayCents
-        });
-
-        await PendingMatch.create({
-          channelId: channel.id,
-          user1,
-          user2,
-          price: amountPayCents,
-        });
+        await PendingMatch.create({ channelId: channel.id, user1, user2, price: amountPayCents });
 
         const { premioVencedor } = calcularPremio(amountPayCents * 2);
+        const fmtR = (c: number) => `R$ ${(c / 100).toFixed(2).replace('.', ',')}`;
+
         const matchEmbed = new EmbedBuilder()
           .setColor(0x00FF00)
           .setTitle('🎮 Partida Criada!')
           .setDescription(
             `**Jogadores:**\n` +
             `<@${user1}> VS <@${user2}>\n\n` +
-            `**Valor da Aposta:** R$ ${(amountPayCents / 100).toFixed(2).replace('.', ',')}\n` +
-            `**Prêmio do Vencedor:** R$ ${(premioVencedor / 100).toFixed(2).replace('.', ',')}\n\n` +
+            `**Valor da Aposta:** ${fmtR(amountPayCents)}\n` +
+            `**Prêmio do Vencedor:** ${fmtR(premioVencedor)}\n\n` +
             `⚠️ **Ambos os jogadores devem clicar em "Aceitar" para confirmar a partida!**\n\n` +
             `Após a confirmação, vocês poderão enviar o link do Clash Royale.`
           )
@@ -165,18 +107,8 @@ new Responder({
             {
               type: 1,
               components: [
-                {
-                  type: 2,
-                  style: 1,
-                  label: 'Aceitar',
-                  customId: 'bet/match/accept'
-                },
-                {
-                  type: 2,
-                  style: 4,
-                  label: 'Cancelar',
-                  customId: 'bet/match/cancel'
-                }
+                { type: 2, style: 1, label: 'Aceitar', customId: 'bet/match/accept' },
+                { type: 2, style: 4, label: 'Cancelar', customId: 'bet/match/cancel' }
               ]
             }
           ]
@@ -189,9 +121,7 @@ new Responder({
 
       } catch (error) {
         console.error('Erro ao criar canal:', error);
-
-        await interaction.update(betMenu(amountPayStr, amountReceiveStr, []));
-
+        await interaction.update(betMenu(amountPayCents, amountReceiveCents, []));
         await interaction.followUp({
           content: 'Erro ao criar canal da partida. Tente novamente.',
           ephemeral: true
@@ -201,10 +131,8 @@ new Responder({
       return;
     }
 
-    // Remove R$ dos valores antes de passar para betMenu
-    await interaction.update(betMenu(cleanedAmountPay, amountReceiveStr.replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.'), members));
+    await interaction.update(betMenu(amountPayCents, amountReceiveCents, members));
 
-    // 1º jogador entrou — agendar alerta no canal dedicado caso ninguém entre em breve
     if (members.length === 1 && message.channel.isTextBased() && 'send' in message.channel) {
       void scheduleQueueNotification(interaction.client, message.channel as TextChannel, message.id, memberId, amountPayCents, interaction.guildId!);
     }
@@ -219,21 +147,14 @@ new Responder({
     const { member, message } = interaction;
     const memberId = member.id;
 
-    const valorField = message.embeds[0]?.fields[0]?.value || "R$ 0,00 / R$ 0,00";
-    const [amountPayStr, amountReceiveStr] = valorField
-      .split(" / ")
-      .map(v => v.trim());
+    const valorField = message.embeds[0]?.fields?.[0]?.value ?? "R$ 0,00 / R$ 0,00";
+    const parts = valorField.split(" / ").map(v => v.trim());
 
-    // Limpa os valores removendo R$ e formatação
-    const cleanedAmountPay = amountPayStr
-      .replace(/[^\d,.-]/g, '')
-      .replace(/\./g, '')
-      .replace(',', '.');
+    const toFloat = (s: string) =>
+      parseFloat(s.replace(/[^\d,]/g, '').replace(',', '.'));
 
-    const cleanedAmountReceive = amountReceiveStr
-      .replace(/[^\d,.-]/g, '')
-      .replace(/\./g, '')
-      .replace(',', '.');
+    const amountPayCents = Math.round(toFloat(parts[0] ?? "0") * 100);
+    const amountReceiveCents = Math.round(toFloat(parts[1] ?? "0") * 100);
 
     const fieldValue = message.embeds[0]?.fields?.[1]?.value;
     let members = fieldValue
@@ -241,20 +162,16 @@ new Responder({
       : [];
 
     if (!members.includes(memberId)) {
-      reply.danger({
-        interaction,
-        text: "Você não está na fila!"
-      });
+      reply.danger({ interaction, text: "Você não está na fila!" });
       return;
     }
 
     members = members.filter(id => id !== memberId);
 
-    // Fila ficou vazia — cancelar notificação pendente
     if (members.length === 0) {
       cancelQueueNotification(message.id);
     }
 
-    await interaction.update(betMenu(cleanedAmountPay, cleanedAmountReceive, members));
+    await interaction.update(betMenu(amountPayCents, amountReceiveCents, members));
   },
 });

@@ -1,14 +1,17 @@
 import { createRow, hexToRgb } from "@magicyan/discord";
 import { ButtonBuilder, ButtonStyle, EmbedBuilder } from "discord.js";
 
-export function betMenu(amountPay: string, amountReceive: string, members: string[] = []) {
+const fmt = (cents: number) =>
+  (cents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+export function betMenu(amountPayCents: number, amountReceiveCents: number, members: string[] = []) {
 
   const embed = new EmbedBuilder({
     title: "1v1 Clássico | Fila de Competição",
     color: hexToRgb("#0099ff"),
     description: `Formato\n1v1 Clássico\n\n`,
     fields: [
-      { name: 'Valor', value: `R$ ${amountPay} / R$ ${amountReceive}\n\n`, inline: false },
+      { name: 'Valor', value: `R$ ${fmt(amountPayCents)} / R$ ${fmt(amountReceiveCents)}\n\n`, inline: false },
       {
         name: 'Jogadores', value: members.length > 0 ?
           members.map((v) => `<@${v}>`).join("\n") :
