@@ -1,7 +1,7 @@
 import { Responder, ResponderType } from "#base";
 import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, TextChannel } from "discord.js";
 import { Confirmation } from "#database";
-import { descontoPartida, createActiveMatch } from "#functions";
+import { descontoPartida, createActiveMatch, getMoney } from "#functions";
 import { matchData } from "./queue.js";
 
 const confirmations = new Map<string, Set<string>>();
@@ -67,6 +67,34 @@ new Responder({
             await interaction.deferUpdate();
 
             try {
+                const [saldo1, saldo2] = await Promise.all([
+                    getMoney(user1),
+                    getMoney(user2),
+                ]);
+
+                if (saldo1 < priceInCents || saldo2 < priceInCents) {
+                    confirmations.delete(channelId);
+                    matchData.delete(channelId);
+
+                    const semSaldoEmbed = new EmbedBuilder()
+                        .setColor(0xFF0000)
+                        .setTitle('❌ Saldo Insuficiente')
+                        .setDescription(
+                            `Um dos jogadores não possui saldo suficiente para confirmar a partida.\n\n` +
+                            `**Necessário:** R$ ${(priceInCents / 100).toFixed(2).replace('.', ',')}\n\n` +
+                            `⏱️ Este canal será deletado em 30 segundos...`
+                        )
+                        .setFooter({ text: 'ClashBet' })
+                        .setTimestamp();
+
+                    await interaction.message.edit({ embeds: [semSaldoEmbed], components: [] });
+
+                    setTimeout(async () => {
+                        try { await channel.delete(); } catch {}
+                    }, 30000);
+                    return;
+                }
+
                 await descontoPartida(user1, user2, priceInCents);
 
                 await Confirmation.create({
