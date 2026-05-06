@@ -12,8 +12,8 @@ new Command({
   options: [
     {
       name: 'valor',
-      description: 'Valor em reais para a fila (use ponto para decimais, ex: 0.5 para R$0,50)',
-      type: 10,
+      description: 'Valor em reais (ex: 0.5 ou 0,5 para R$0,50)',
+      type: 3,
       required: true
     },
     {
@@ -24,8 +24,14 @@ new Command({
     }
   ],
   async run(interaction) {
-    const valor = interaction.options.getNumber('valor', true);
+    const valorStr = interaction.options.getString('valor', true);
     const channelOption = interaction.options.getChannel('canal', true);
+
+    const valorFloat = parseFloat(valorStr.replace(',', '.'));
+    if (isNaN(valorFloat) || valorFloat <= 0) {
+      await interaction.reply({ content: 'Valor inválido! Use ponto ou vírgula como separador decimal (ex: 0.5 ou 0,5).', ephemeral });
+      return;
+    }
 
     if (channelOption.type !== ChannelType.GuildText) {
       await interaction.reply({ content: 'Por favor, selecione um canal de texto!', ephemeral });
@@ -38,7 +44,7 @@ new Command({
       return;
     }
 
-    const amountPayCents = Math.round(valor * 100);
+    const amountPayCents = Math.round(valorFloat * 100);
     const { premioVencedor } = calcularPremio(amountPayCents * 2);
 
     await channel.send(betMenu(amountPayCents, premioVencedor));
