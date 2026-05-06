@@ -17,6 +17,7 @@ export const envSchema = z.object({
     MERCADO_PAGO_PAYER_CPF: z.string().optional().default(""),
 
     // Webhook
+    WEBHOOK_URL: z.string().optional().default(""),
     WEBHOOK_PORT: z.string()
         .optional()
         .default("3000")

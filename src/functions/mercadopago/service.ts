@@ -31,6 +31,7 @@ export async function createPixPayment(
         description,
         payment_method_id: 'pix',
         date_of_expiration: expiresAt.toISOString(),
+        notification_url: env.WEBHOOK_URL ? `${env.WEBHOOK_URL}/webhook/mercadopago` : undefined,
         payer: {
             email: env.MERCADO_PAGO_PAYER_EMAIL,
             first_name: name,
