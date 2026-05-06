@@ -1,5 +1,5 @@
 import { Responder, ResponderType } from "#base";
-import { reply, cancelMatch, checkMatchResult, creditPrize, saveMatchLog, sendDM } from "#functions";
+import { reply, cancelMatch, checkMatchResult, creditPrize, refundMatchFee, saveMatchLog, sendDM } from "#functions";
 import { ButtonStyle, ActionRowBuilder, ButtonBuilder, EmbedBuilder } from "discord.js";
 import { Match } from "#database";
 import { deleteChannel } from "#functions";
@@ -75,12 +75,9 @@ new Responder({
                     const player1Mention = `<@${verificationResult.player1UserId}>`;
                     const player2Mention = `<@${verificationResult.player2UserId}>`;
 
-                    // Reembolsa ambos os jogadores
+                    // Reembolsa ambos os jogadores sem aplicar rake
                     if (verificationResult.price) {
-                        await Promise.all([
-                            creditPrize(verificationResult.player1UserId!, verificationResult.price),
-                            creditPrize(verificationResult.player2UserId!, verificationResult.price)
-                        ]);
+                        await refundMatchFee(verificationResult.player1UserId!, verificationResult.player2UserId!, verificationResult.price);
                     }
 
                     const drawEmbed = new EmbedBuilder()
@@ -289,12 +286,9 @@ new Responder({
                     const player1Mention = `<@${verificationResult.player1UserId}>`;
                     const player2Mention = `<@${verificationResult.player2UserId}>`;
 
-                    // Reembolsa ambos os jogadores
+                    // Reembolsa ambos os jogadores sem aplicar rake
                     if (verificationResult.price) {
-                        await Promise.all([
-                            creditPrize(verificationResult.player1UserId!, verificationResult.price),
-                            creditPrize(verificationResult.player2UserId!, verificationResult.price)
-                        ]);
+                        await refundMatchFee(verificationResult.player1UserId!, verificationResult.player2UserId!, verificationResult.price);
                     }
 
                     const drawEmbed = new EmbedBuilder()
@@ -520,12 +514,9 @@ new Responder({
                 return;
             }
 
-            // Reembolsa ambos os jogadores
+            // Reembolsa ambos os jogadores sem aplicar rake
             if (result.player1UserId && result.player2UserId) {
-                await Promise.all([
-                    creditPrize(result.player1UserId, result.price),
-                    creditPrize(result.player2UserId, result.price)
-                ]);
+                await refundMatchFee(result.player1UserId, result.player2UserId, result.price);
             }
 
             const cancelEmbed = new EmbedBuilder()
