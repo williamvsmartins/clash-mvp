@@ -1,5 +1,5 @@
 import { Responder, ResponderType } from "#base";
-import { reply, betMenu, getBalance, scheduleQueueNotification, cancelQueueNotification } from "#functions";
+import { reply, betMenu, scheduleQueueNotification, cancelQueueNotification, schedulePendingMatchTimeout } from "#functions";
 import { PendingMatch } from "#database";
 import { ChannelType, PermissionFlagsBits, EmbedBuilder, TextChannel } from "discord.js";
 import { calcularPremio } from "#settings";
@@ -48,16 +48,6 @@ new Responder({
       return;
     }
 
-    const saldo = await getBalance(memberId);
-
-    if (saldo < amountPayCents) {
-      reply.danger({
-        interaction,
-        text: `Saldo insuficiente! Seu saldo atual é de R$ ${(saldo / 100).toFixed(2).replace('.', ',')}`
-      });
-      return;
-    }
-
     members.push(memberId);
 
     if (members.length >= 2) {
@@ -82,6 +72,7 @@ new Responder({
         matchData.set(channel.id, { user1, user2, price: amountPayCents });
 
         await PendingMatch.create({ channelId: channel.id, user1, user2, price: amountPayCents });
+        schedulePendingMatchTimeout(interaction.client, channel.id);
 
         const { premioVencedor } = calcularPremio(amountPayCents * 2);
         const fmtR = (c: number) => `R$ ${(c / 100).toFixed(2).replace('.', ',')}`;

@@ -1,7 +1,7 @@
 import { Responder, ResponderType } from "#base";
-import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, TextChannel } from "discord.js";
+import { EmbedBuilder, ButtonBuilder, ActionRowBuilder, ButtonStyle, TextChannel, ModalBuilder, TextInputBuilder, TextInputStyle } from "discord.js";
 import { Confirmation, User, PendingMatch } from "#database";
-import { debitMatchFee, refundMatchFee, createActiveMatch, getBalance } from "#functions";
+import { debitMatchFee, refundMatchFee, createActiveMatch, getBalance, cancelPendingMatchTimeout } from "#functions";
 import { calcularPremio } from "#settings";
 import { matchData } from "./queue.js";
 
@@ -62,64 +62,68 @@ new Responder({
             return;
         }
 
+        // Valida cadastro e saldo do jogador que está clicando ANTES de registrar a confirmação
+        const [player, saldo] = await Promise.all([
+            User.findOne({ userId }),
+            getBalance(userId),
+        ]);
+
+        if (!player?.clashTag) {
+            const registerButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                new ButtonBuilder()
+                    .setCustomId('add_tag')
+                    .setLabel('Criar cadastro')
+                    .setStyle(ButtonStyle.Primary),
+            );
+            await interaction.reply({
+                content: [
+                    '❌ Você precisa ter um cadastro para confirmar a partida.',
+                    '',
+                    'Vincule sua conta do Clash Royale clicando no botão abaixo e depois volte aqui para confirmar.',
+                ].join('\n'),
+                components: [registerButton],
+                ephemeral: true,
+            });
+            return;
+        }
+
+        if (saldo < priceInCents) {
+            const fmt = (c: number) => `R$ ${(c / 100).toFixed(2).replace('.', ',')}`;
+
+            const depositModal = new ModalBuilder()
+                .setCustomId('deposito_modal')
+                .setTitle('Depositar para confirmar partida');
+
+            const depositInput = new TextInputBuilder()
+                .setCustomId('depositoModal')
+                .setLabel(`Saldo atual: ${fmt(saldo)} — Necessário: ${fmt(priceInCents)}`)
+                .setPlaceholder(fmt(priceInCents).replace('R$ ', ''))
+                .setStyle(TextInputStyle.Short)
+                .setRequired(true);
+
+            depositModal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(depositInput));
+            await interaction.showModal(depositModal);
+            return;
+        }
+
         channelConfirmations.add(userId);
 
         if (channelConfirmations.size >= 2) {
             await interaction.deferUpdate();
 
             try {
-                const [saldo1, saldo2, player1, player2] = await Promise.all([
-                    getBalance(user1),
-                    getBalance(user2),
+                const [player1, player2] = await Promise.all([
                     User.findOne({ userId: user1 }),
                     User.findOne({ userId: user2 }),
                 ]);
 
+                // Dupla checagem defensiva (ambos já validaram individualmente ao clicar)
                 if (!player1?.clashTag || !player2?.clashTag) {
-                    confirmations.delete(channelId);
-                    matchData.delete(channelId);
-                    await PendingMatch.deleteOne({ channelId });
-
-                    const semTagEmbed = new EmbedBuilder()
-                        .setColor(0xFF0000)
-                        .setTitle('❌ Tag não registrada')
-                        .setDescription(
-                            `Um dos jogadores não possui tag do Clash Royale registrada.\n\n` +
-                            `Use o comando de registro antes de entrar em uma partida.\n\n` +
-                            `⏱️ Este canal será deletado em 30 segundos...`
-                        )
-                        .setFooter({ text: 'ClashBet' })
-                        .setTimestamp();
-
-                    await interaction.message.edit({ embeds: [semTagEmbed], components: [] });
-
-                    setTimeout(async () => {
-                        try { await channel.delete(); } catch {}
-                    }, 30000);
-                    return;
-                }
-
-                if (saldo1 < priceInCents || saldo2 < priceInCents) {
-                    confirmations.delete(channelId);
-                    matchData.delete(channelId);
-                    await PendingMatch.deleteOne({ channelId });
-
-                    const semSaldoEmbed = new EmbedBuilder()
-                        .setColor(0xFF0000)
-                        .setTitle('❌ Saldo Insuficiente')
-                        .setDescription(
-                            `Um dos jogadores não possui saldo suficiente para confirmar a partida.\n\n` +
-                            `**Necessário:** R$ ${(priceInCents / 100).toFixed(2).replace('.', ',')}\n\n` +
-                            `⏱️ Este canal será deletado em 30 segundos...`
-                        )
-                        .setFooter({ text: 'ClashBet' })
-                        .setTimestamp();
-
-                    await interaction.message.edit({ embeds: [semSaldoEmbed], components: [] });
-
-                    setTimeout(async () => {
-                        try { await channel.delete(); } catch {}
-                    }, 30000);
+                    channelConfirmations.delete(user1 === userId ? user2 : user1);
+                    await interaction.followUp({
+                        content: '❌ O outro jogador ainda não possui cadastro. Aguarde ele se registrar e tente novamente.',
+                        ephemeral: true,
+                    });
                     return;
                 }
 
@@ -202,6 +206,7 @@ new Responder({
                         `Para pegar o link: abra o Clash Royale → toque no seu perfil → **Compartilhar** → copie o link e cole aqui.`
                 });
 
+                cancelPendingMatchTimeout(channelId);
                 confirmations.delete(channelId);
                 matchData.delete(channelId);
                 await PendingMatch.deleteOne({ channelId });
@@ -274,6 +279,7 @@ new Responder({
 
         await interaction.deferUpdate();
 
+        cancelPendingMatchTimeout(channelId);
         confirmations.delete(channelId);
         matchData.delete(channelId);
         await PendingMatch.deleteOne({ channelId });

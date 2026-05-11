@@ -7,6 +7,8 @@ export * from './use_cases/match.js';
 export * from './use_cases/webhook.js';
 export * from './use_cases/queueNotifier.js';
 export * from './use_cases/guildConfig.js';
+export * from './use_cases/registration.js';
+export * from './use_cases/pendingMatchTimeout.js';
 export * from './menus/queue.js';
 export * from './menus/config.js';
 export * from './menus/rules.js';

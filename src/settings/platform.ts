@@ -48,6 +48,12 @@ export const FIRST_WIN_BONUS = 25; // R$ 0,25
  */
 export const QUEUE_NOTIFY_AFTER_MINUTES = 1;
 
+/**
+ * Minutes a pending match channel stays open waiting for both players to
+ * confirm (register + deposit). After this window the channel is deleted.
+ */
+export const PENDING_MATCH_TIMEOUT_MINUTES = 10;
+
 // ─── Profit projection (reference only) ──────────────────────────────────────
 
 /**
